@@ -3,6 +3,7 @@
 
 const express = require('express');
 const cors = require('cors');
+const authController = require('./controllers/authController');
 
 const app = express();
 
@@ -18,12 +19,15 @@ app.use(express.urlencoded({
 app.get('/', (req, res) => {
     res.status(200).json({
         status: 'SUCCESS',
-        system: 'SANAD',
+        system: 'SANAD API',
         version: '1.0.0',
         message: 'SANAD API is running',
         timestamp: new Date().toISOString()
     });
 });
+
+app.post('/api/auth/register', authController.registerUser);
+app.get('/api/auth/users', authController.getAllUsers);
 
 app.use((req, res) => {
     res.status(404).json({
@@ -33,13 +37,17 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
-    console.error('Request error:', err.message);
-
     if (res.headersSent) {
         return next(err);
     }
 
-    const statusCode = err.status || 500;
+    console.error('Request error:', err.message);
+
+    const statusCode = Number.isInteger(err.status) &&
+        err.status >= 400 &&
+        err.status <= 599
+        ? err.status
+        : 500;
 
     res.status(statusCode).json({
         status: 'ERROR',
@@ -50,3 +58,4 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
+    
