@@ -3,9 +3,12 @@
 
 const express = require('express');
 const cors = require('cors');
+
 const authController = require('./controllers/authController');
+const authMiddleware = require('./middleware/authMiddleware');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 app.disable('x-powered-by');
 
@@ -27,7 +30,12 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api/auth/register', authController.registerUser);
-app.get('/api/auth/users', authController.getAllUsers);
+
+app.get(
+    '/api/auth/users',
+    authMiddleware,
+    authController.getAllUsers
+);
 
 app.use((req, res) => {
     res.status(404).json({
@@ -57,5 +65,13 @@ app.use((err, req, res, next) => {
     });
 });
 
-module.exports = app;
-    
+const server = app.listen(PORT, () => {
+    console.log(`SANAD server is running on port ${PORT}`);
+});
+
+server.on('error', (error) => {
+    console.error('Failed to start SANAD server:', error.message);
+    process.exitCode = 1;
+});
+
+module.exports = server;
