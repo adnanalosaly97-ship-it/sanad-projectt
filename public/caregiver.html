@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة مقدم الرعاية - سند (SANAD)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #1a252f;
+            background-image: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .phone-container {
+            width: 100%;
+            max-width: 420px;
+            background: #f8fafc;
+            border-radius: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+            border: 10px solid #1a252f;
+        }
+
+        .screen-header {
+            background: #16a085;
+            color: white;
+            padding: 20px 20px 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-status {
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.25);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        .screen-content {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 720px;
+            overflow-y: auto;
+        }
+
+        .emergency-banner {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.35);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+
+        .emergency-info h3 {
+            font-size: 16px;
+            font-weight: 900;
+        }
+
+        .emergency-info p {
+            font-size: 12px;
+            opacity: 0.9;
+            font-weight: 700;
+        }
+
+        .btn-respond {
+            background: #ffffff;
+            color: #c0392b;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .patient-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .patient-avatar {
+            width: 55px;
+            height: 55px;
+            background: #e8f8f5;
+            color: #16a085;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .patient-details h4 {
+            font-size: 16px;
+            color: #2c3e50;
+            font-weight: 800;
+        }
+
+        .patient-details p {
+            font-size: 12px;
+            color: #7f8c8d;
+            font-weight: 700;
+        }
+
+        .requests-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .request-item {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 14px;
+            border-right: 6px solid #3498db;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .request-item.medication {
+            border-right-color: #f39c12;
+        }
+
+        .request-item.emergency {
+            border-right-color: #e74c3c;
+        }
+
+        .request-text h5 {
+            font-size: 14px;
+            color: #2c3e50;
+            font-weight: 800;
+        }
+
+        .request-text span {
+            font-size: 11px;
+            color: #95a5a6;
+            font-weight: 600;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-accept {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .btn-decline {
+            background: #ecf0f1;
+            color: #7f8c8d;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-box {
+            background: #ffffff;
+            padding: 14px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-number {
+            font-size: 22px;
+            font-weight: 900;
+            color: #16a085;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            font-weight: 700;
+        }
+
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .alert-modal {
+            background: white;
+            padding: 25px;
+            border-radius: 25px;
+            text-align: center;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .alert-modal h2 {
+            font-size: 22px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 900;
+        }
+
+        .alert-modal p {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .btn-close-modal {
+            background: #16a085;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 15px;
+            font-weight: 800;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        
+        <div class="screen-header">
+            <div class="header-title">
+                <span>👨‍⚕️</span> لوحة المساعد
+            </div>
+            <div class="header-status">
+                🟢 متصل الآن
+            </div>
+        </div>
+
+        <div class="screen-content">
+            
+            <div class="emergency-banner" id="emergencyBanner">
+                <div class="emergency-info">
+                    <h3>🚨 تنبيه طوارئ نشط!</h3>
+                    <p>الوالد / عبد الله - صالة المنزل</p>
+                </div>
+                <button class="btn-respond" onclick="respondEmergency()">استجابة فورية</button>
+            </div>
+
+            <div class="section-title">
+                <span>المستفيد المسند إليك</span>
+                <span style="font-size: 12px; color: #16a085;">حالة مستقرة</span>
+            </div>
+
+            <div class="patient-card">
+                <div class="patient-avatar">👴</div>
+                <div class="patient-details">
+                    <h4>الوالد عبد الله علي</h4>
+                    <p>العمر: 74 سنة | الضغط: متزن</p>
+                    <p>📍 الموقع: المنزل (غرفة المعيشة)</p>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">أدوية اليوم</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">نسبة الاستجابة</div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <span>الطلبات والتنبيهات الحالية</span>
+            </div>
+
+            <div class="requests-list">
+                
+                <div class="request-item emergency">
+                    <div class="request-text">
+                        <h5>طلب مساعدة عاجلة</h5>
+                        <span>منذ 2 دقيقة</span>
+                    </div>
+                    <div class="action-btns">
+                        <button class="btn-accept" onclick="acceptRequest('طلب المساعدة')">قبول</button>
+                        <button class="btn-decline" onclick="ignoreRequest(this)">تجاهل</button>
+                    </div>
+                </div>
+
+                <div class="request-item medication">
+                    <div class="request-text">
+                        <h5>تذكير بموعد دواء السكر</h5>
+                        <span>الساعة 2:00 ظهراً</span>
+                    </div>
+                    <div class="action-btns">
+                        <button class="btn-accept" onclick="acceptRequest('متابعة الدواء')">تأكيد الأخذ</button>
+                    </div>
+                </div>
+
+                <div class="request-item">
+                    <div class="request-text">
+                        <h5>طلب مكالمة مرئية</h5>
+                        <span>منذ 15 دقيقة</span>
+                    </div>
+                    <div class="action-btns">
+                        <button class="btn-accept" onclick="acceptRequest('المكالمة والمرئية')">بدء</button>
+                        <button class="btn-decline" onclick="ignoreRequest(this)">إلغاء</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div id="alertModal" class="custom-alert-overlay hidden">
+        <div class="alert-modal">
+            <div id="modalIcon" style="font-size: 45px; margin-bottom: 10px;">🔔</div>
+            <h2 id="modalTitle">تنبيه</h2>
+            <p id="modalMessage">تفاصيل الطلب هنا</p>
+            <button class="btn-close-modal" onclick="closeModal()">موافق</button>
+        </div>
+    </div>
+
+    <script>
+        function showModal(title, message, icon = '🔔') {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('modalIcon').textContent = icon;
+            document.getElementById('alertModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('alertModal').classList.add('hidden');
+        }
+
+        function respondEmergency() {
+            showModal('🚨 جاري الاستجابة للطوارئ', 'تم تأكيد استجابتك البلاغ! جاري فتح قنوات الاتصال والموقع المباشر مع المستفيد...', '📞');
+            document.getElementById('emergencyBanner').style.display = 'none';
+        }
+
+        function acceptRequest(type) {
+            showModal('✅ تم قبول الطلب', 'تم قبول ' + type + ' بنجاح وجاري المتابعة مع المستفيد.', '👍');
+        }
+
+        function ignoreRequest(btnElement) {
+            const item = btnElement.closest('.request-item');
+            item.style.opacity = '0.5';
+            item.style.pointerEvents = 'none';
+        }
+
+        async function fetchCaregiverData() {
+            try {
+                const token = localStorage.getItem('sanad_token');
+                const response = await fetch('/api/caregiver/requests', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if(response.ok) {
+                    const data = await response.json();
+                }
+            } catch (error) {
+                console.error('Caregiver data error:', error);
+            }
+        }
+
+        fetchCaregiverData();
+    </script>
+</body>
+</html>
