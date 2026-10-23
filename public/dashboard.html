@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واجهة كبار السن - سند (SANAD)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background-color: #1a252f;
+            background-image: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .phone-container {
+            width: 100%;
+            max-width: 420px;
+            background: #f8fafc;
+            border-radius: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+            border: 10px solid #1a252f;
+        }
+
+        .screen-header {
+            background: #2980b9;
+            color: white;
+            padding: 20px 20px 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-location {
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        .screen-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .status-banner {
+            background: #e8f8f5;
+            border: 2px solid #a3e4d7;
+            color: #27ae60;
+            padding: 12px 15px;
+            border-radius: 16px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .dash-card {
+            border: none;
+            border-radius: 24px;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            min-height: 160px;
+            user-select: none;
+        }
+
+        .dash-card:active {
+            transform: scale(0.95);
+        }
+
+        .dash-card .card-icon {
+            font-size: 42px;
+            margin-bottom: 8px;
+        }
+
+        .dash-card .card-title {
+            font-size: 20px;
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .dash-card .card-sub {
+            font-size: 12px;
+            font-weight: 700;
+            opacity: 0.9;
+        }
+
+        .card-emergency {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            grid-column: span 1;
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+            border: 3px solid #ff7675;
+        }
+
+        .card-care {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            grid-column: span 1;
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+            border: 3px solid #74b9ff;
+        }
+
+        .card-family {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            grid-column: span 1;
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4);
+            border: 3px solid #55efc4;
+        }
+
+        .card-meds {
+            background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+            grid-column: span 1;
+            box-shadow: 0 8px 20px rgba(241, 196, 15, 0.4);
+            border: 3px solid #ffeaa7;
+            color: #2c3e50;
+        }
+
+        .voice-section {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 20px;
+            text-align: center;
+            border: 3px solid #e2e8f0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .voice-title {
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .voice-sub {
+            color: #e74c3c;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .btn-mic {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+            color: white;
+            border: 4px solid #ebf5fb;
+            border-radius: 50%;
+            font-size: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(41, 128, 185, 0.3);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .btn-mic:active, .btn-mic.listening {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(231, 76, 60, 0.7);
+        }
+
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .alert-modal {
+            background: white;
+            padding: 30px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 350px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .alert-modal h2 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 900;
+        }
+
+        .alert-modal p {
+            font-size: 16px;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .btn-close-modal {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 800;
+            border-radius: 15px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        
+        <div class="screen-header">
+            <div class="header-title">
+                <span>🤝</span> سند - كبار السن
+            </div>
+            <div class="header-location">
+                📍 في المنزل
+            </div>
+        </div>
+
+        <div class="screen-content">
+            
+            <div class="status-banner">
+                <span>✅</span> حالة النظام: متصل وجاهز للخدمة
+            </div>
+
+            <div class="grid-container">
+                
+                <button class="dash-card card-emergency" onclick="triggerEmergency()">
+                    <div class="card-icon">🚨</div>
+                    <div class="card-title">حالة طوارئ!</div>
+                    <div class="card-sub">اضغط هنا فوراً</div>
+                </button>
+
+                <button class="dash-card card-care" onclick="requestCare()">
+                    <div class="card-icon">👨‍⚕️</div>
+                    <div class="card-title">طلب رعاية</div>
+                    <div class="card-sub">تواصل مع مساعد</div>
+                </button>
+
+                <button class="dash-card card-family" onclick="callFamily()">
+                    <div class="card-icon">👨‍👩‍👧‍👦</div>
+                    <div class="card-title">اتصال بالعائلة</div>
+                    <div class="card-sub">تحدث مع أحبابك</div>
+                </button>
+
+                <button class="dash-card card-meds" onclick="showMedications()">
+                    <div class="card-icon">💊</div>
+                    <div class="card-title">تنبيهات الدواء</div>
+                    <div class="card-sub">مواعيد أدوية اليوم</div>
+                </button>
+
+            </div>
+
+            <div class="voice-section">
+                <div class="voice-title">الأوامر الصوتية الذكية</div>
+                <div class="voice-sub">نادِ: "يا سند، طوارئ!"</div>
+                <button class="btn-mic" id="micBtn" onclick="toggleVoiceRecognition()">
+                    🎤
+                </button>
+                <div id="voiceStatus" style="font-size: 13px; color: #7f8c8d; font-weight: 700;">
+                    اضغط الميكروفون للتحدث الان
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="alertModal" class="custom-alert-overlay hidden">
+        <div class="alert-modal">
+            <div id="modalIcon" style="font-size: 50px; margin-bottom: 10px;">🔔</div>
+            <h2 id="modalTitle">تنبيه</h2>
+            <p id="modalMessage">تفاصيل التنبيه هنا</p>
+            <button class="btn-close-modal" onclick="closeModal()">حسناً، فهمت</button>
+        </div>
+    </div>
+
+    <script>
+        function showModal(title, message, icon = '🔔') {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('modalIcon').textContent = icon;
+            document.getElementById('alertModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('alertModal').classList.add('hidden');
+        }
+
+        async function triggerEmergency() {
+            showModal('🚨 طوارئ عاجلة!', 'جاري إرسال إشعار استغاثة للمساعدين وأفراد العائلة فوراً...', '🚨');
+            
+            try {
+                const token = localStorage.getItem('sanad_token');
+                await fetch('/api/alerts/emergency', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ type: 'EMERGENCY_BUTTON', timestamp: new Date().toISOString() })
+                });
+            } catch (error) {
+                console.error('Emergency trigger error:', error);
+            }
+        }
+
+        function requestCare() {
+            showModal('👨‍⚕️ طلب رعاية', 'تم إرسال طلبك لمقدم الرعاية، سيتم التواصل معك خلال لحظات.', '📞');
+        }
+
+        function callFamily() {
+            showModal('👨‍👩‍👧‍👦 الاتصال بالعائلة', 'جاري تجهيز الاتصال السريع بأقرب قريب مسجل...', '📲');
+        }
+
+        function showMedications() {
+            showModal('💊 مواعيد الأدوية', 'دواء الضغط: الساعة 8:00 صباحاً (تم الأخذ)\nدواء السكر: الساعة 2:00 ظهراً', '📋');
+        }
+
+        let isListening = false;
+        let recognition = null;
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ar-SA';
+            recognition.continuous = false;
+
+            recognition.onstart = function() {
+                isListening = true;
+                document.getElementById('micBtn').classList.add('listening');
+                document.getElementById('voiceStatus').textContent = 'جاري الاستماع إليك... اتكلم الآن';
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('voiceStatus').textContent = 'سمعت: "' + transcript + '"';
+                
+                if (transcript.includes('طوارئ') || transcript.includes('سند')) {
+                    triggerEmergency();
+                } else if (transcript.includes('دواء') || transcript.includes('علاج')) {
+                    showMedications();
+                } else if (transcript.includes('عائلة') || transcript.includes('اتصل')) {
+                    callFamily();
+                } else {
+                    showModal('🎙️ الأمر الصوتي', 'تم الاستماع لـ: ' + transcript, '🗣️');
+                }
+            };
+
+            recognition.onerror = function() {
+                document.getElementById('voiceStatus').textContent = 'لم أتمكن من السماع بوضوح، حاول مرة أخرى';
+                document.getElementById('micBtn').classList.remove('listening');
+                isListening = false;
+            };
+
+            recognition.onend = function() {
+                document.getElementById('micBtn').classList.remove('listening');
+                isListening = false;
+            };
+        }
+
+        function toggleVoiceRecognition() {
+            if (!recognition) {
+                showModal('تنبيه الصوت', 'خاصية التعرف على الصوت غير مدعومة في هذا المتصفح', '⚠️');
+                return;
+            }
+
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+    </script>
+</body>
+</html>
