@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم والإدارة - سند (SANAD)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #1a252f;
+            background-image: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .phone-container {
+            width: 100%;
+            max-width: 420px;
+            background: #f8fafc;
+            border-radius: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+            border: 10px solid #1a252f;
+        }
+
+        .screen-header {
+            background: #8e44ad;
+            color: white;
+            padding: 20px 20px 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-status {
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.25);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        .screen-content {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 720px;
+            overflow-y: auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+        .stat-card .num {
+            font-size: 24px;
+            font-weight: 900;
+            color: #8e44ad;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: #7f8c8d;
+            font-weight: 700;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .user-item {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 12px 15px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #f3e5f5;
+            color: #8e44ad;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .user-details h5 {
+            font-size: 14px;
+            color: #2c3e50;
+            font-weight: 800;
+        }
+
+        .user-details span {
+            font-size: 11px;
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+
+        .role-badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: 800;
+        }
+
+        .role-elderly {
+            background: #e8f8f5;
+            color: #27ae60;
+        }
+
+        .role-helper {
+            background: #ebf5fb;
+            color: #2980b9;
+        }
+
+        .btn-action {
+            background: #f8fafc;
+            border: 1px solid #cbd5e0;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #4a5568;
+        }
+
+        .btn-action:hover {
+            background: #edf2f7;
+        }
+
+        .system-logs {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .log-item {
+            font-size: 12px;
+            color: #4a5568;
+            padding: 6px 0;
+            border-bottom: 1px dashed #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .alert-modal {
+            background: white;
+            padding: 25px;
+            border-radius: 25px;
+            text-align: center;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .alert-modal h2 {
+            font-size: 22px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 900;
+        }
+
+        .alert-modal p {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .btn-close-modal {
+            background: #8e44ad;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 15px;
+            font-weight: 800;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        
+        <div class="screen-header">
+            <div class="header-title">
+                <span>⚙️</span> لوحة الإدارة
+            </div>
+            <div class="header-status">
+                👑 مدير النظام
+            </div>
+        </div>
+
+        <div class="screen-content">
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="num" id="totalUsers">24</div>
+                    <div class="label">إجمالي المستخدمين</div>
+                </div>
+                <div class="stat-card">
+                    <div class="num" id="activeAlerts">0</div>
+                    <div class="label">بلاغات نشطة</div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <span>إدارة المستخدمين</span>
+                <button class="btn-action" onclick="addUserModal()">+ إضافة جديد</button>
+            </div>
+
+            <div class="user-list">
+                
+                <div class="user-item">
+                    <div class="user-info">
+                        <div class="user-avatar">👴</div>
+                        <div class="user-details">
+                            <h5>عبد الله علي</h5>
+                            <span>كبير سن (مستفيد)</span>
+                        </div>
+                    </div>
+                    <span class="role-badge role-elderly">مستفيد</span>
+                    <button class="btn-action" onclick="editUser('عبد الله علي')">تعديل</button>
+                </div>
+
+                <div class="user-item">
+                    <div class="user-info">
+                        <div class="user-avatar">👨‍⚕️</div>
+                        <div class="user-details">
+                            <h5>د. محمد خالد</h5>
+                            <span>مقدم رعاية</span>
+                        </div>
+                    </div>
+                    <span class="role-badge role-helper">مساعد</span>
+                    <button class="btn-action" onclick="editUser('د. محمد خالد')">تعديل</button>
+                </div>
+
+                <div class="user-item">
+                    <div class="user-info">
+                        <div class="user-avatar">👩‍⚕️</div>
+                        <div class="user-details">
+                            <h5>سارة أحمد</h5>
+                            <span>مقدم رعاية</span>
+                        </div>
+                    </div>
+                    <span class="role-badge role-helper">مساعد</span>
+                    <button class="btn-action" onclick="editUser('سارة أحمد')">تعديل</button>
+                </div>
+
+            </div>
+
+            <div class="section-title">
+                <span>سجل أحداث النظام المباشر</span>
+            </div>
+
+            <div class="system-logs">
+                <div class="log-item">
+                    <span>تسجيل دخول - مدير النظام</span>
+                    <span style="color: #95a5a6;">الآن</span>
+                </div>
+                <div class="log-item">
+                    <span>تحديث جدول الأدوية - الوالد عبد الله</span>
+                    <span style="color: #95a5a6;">منذ 10 د</span>
+                </div>
+                <div class="log-item">
+                    <span>فحص اتصال خادم API</span>
+                    <span style="color: #27ae60; font-weight: bold;">سليم ✅</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="alertModal" class="custom-alert-overlay hidden">
+        <div class="alert-modal">
+            <div id="modalIcon" style="font-size: 45px; margin-bottom: 10px;">⚙️</div>
+            <h2 id="modalTitle">إدارة النظام</h2>
+            <p id="modalMessage">التفاصيل هنا</p>
+            <button class="btn-close-modal" onclick="closeModal()">إغلاق</button>
+        </div>
+    </div>
+
+    <script>
+        function showModal(title, message, icon = '⚙️') {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('modalIcon').textContent = icon;
+            document.getElementById('alertModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('alertModal').classList.add('hidden');
+        }
+
+        function editUser(userName) {
+            showModal('تعديل حساب', 'جاري فتح نافذة تعديل الصلاحيات للمستخدم: ' + userName, '✏️');
+        }
+
+        function addUserModal() {
+            showModal('إضافة مستخدم جديد', 'يمكنك إضافة كبار السن أو المساعدين وتحديد أدوارهم في النظام.', '➕');
+        }
+
+        async function fetchAdminStats() {
+            try {
+                const token = localStorage.getItem('sanad_token');
+                const response = await fetch('/api/admin/stats', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if(response.ok) {
+                    const data = await response.json();
+                    if(data.totalUsers) document.getElementById('totalUsers').textContent = data.totalUsers;
+                    if(data.activeAlerts !== undefined) document.getElementById('activeAlerts').textContent = data.activeAlerts;
+                }
+            } catch (error) {
+                console.error('Admin stats fetch error:', error);
+            }
+        }
+
+        fetchAdminStats();
+    </script>
+</body>
+</html>
