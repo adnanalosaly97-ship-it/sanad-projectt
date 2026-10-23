@@ -31,6 +31,15 @@ app.get('/', (req, res) => {
 
 app.post('/api/auth/register', authController.registerUser);
 
+app.post('/api/auth/login', (req, res) => {
+    res.status(200).json({
+        status: 'SUCCESS',
+        message: 'Login successful',
+        token: 'mock-jwt-token-sanad-2026',
+        user: { name: 'المستفيد / المساعد', role: 'user' }
+    });
+});
+
 app.get(
     '/api/auth/users',
     authMiddleware,
@@ -48,6 +57,28 @@ app.get(
     authMiddleware,
     requestController.getAllRequests
 );
+
+app.post('/api/alerts/emergency', authMiddleware, (req, res) => {
+    res.status(200).json({
+        status: 'SUCCESS',
+        message: 'Emergency alert dispatched successfully'
+    });
+});
+
+app.get('/api/caregiver/requests', authMiddleware, (req, res) => {
+    res.status(200).json({
+        status: 'SUCCESS',
+        requests: []
+    });
+});
+
+app.get('/api/admin/stats', authMiddleware, (req, res) => {
+    res.status(200).json({
+        status: 'SUCCESS',
+        totalUsers: 24,
+        activeAlerts: 0
+    });
+});
 
 app.use((req, res) => {
     res.status(404).json({
