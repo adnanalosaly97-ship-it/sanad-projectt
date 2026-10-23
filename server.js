@@ -30,15 +30,7 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api/auth/register', authController.registerUser);
-
-app.post('/api/auth/login', (req, res) => {
-    res.status(200).json({
-        status: 'SUCCESS',
-        message: 'Login successful',
-        token: 'mock-jwt-token-sanad-2026',
-        user: { name: 'المستفيد / المساعد', role: 'user' }
-    });
-});
+app.post('/api/auth/login', authController.loginUser);
 
 app.get(
     '/api/auth/users',
