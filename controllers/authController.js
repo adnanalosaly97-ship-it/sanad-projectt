@@ -1,7 +1,7 @@
-
 'use strict';
 
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
 exports.registerUser = async (req, res) => {
@@ -114,6 +114,64 @@ exports.registerUser = async (req, res) => {
 
         console.error('User registration failed:', error.message);
 
+        return res.status(500).json({
+            status: 'ERROR',
+            message: 'An internal server error occurred.'
+        });
+    }
+};
+
+exports.loginUser = async (req, res) => {
+    try {
+        const { email_address, password } = req.body;
+
+        if (!email_address || !password) {
+            return res.status(400).json({
+                status: 'ERROR',
+                message: 'Please provide email and password.'
+            });
+        }
+
+        const [rows] = await db.execute(
+            `SELECT * FROM users WHERE email_address = ? LIMIT 1`,
+            [email_address.trim().toLowerCase()]
+        );
+
+        if (rows.length === 0) {
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'Invalid email or password.'
+            });
+        }
+
+        const user = rows[0];
+
+        const isMatch = await bcrypt.compare(password, user.password_hash);
+        if (!isMatch) {
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'Invalid email or password.'
+            });
+        }
+
+        const token = jwt.sign(
+            { sub: user.user_id, role: user.user_role },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        return res.status(200).json({
+            status: 'SUCCESS',
+            message: 'Login successful',
+            token,
+            user: {
+                id: user.user_id,
+                name: user.full_name,
+                role: user.user_role
+            }
+        });
+    } catch (error) {
+        console.error('Login failed:', error.message);
         return res.status(500).json({
             status: 'ERROR',
             message: 'An internal server error occurred.'
