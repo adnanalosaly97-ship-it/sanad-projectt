@@ -12,7 +12,7 @@ exports.registerUser = async (req, res) => {
             email_address,
             password,
             user_role
-        } = req.body;
+        } = req.body || {};
 
         if (
             typeof full_name !== 'string' ||
@@ -40,10 +40,13 @@ exports.registerUser = async (req, res) => {
             });
         }
 
-        if (phone && phone.length > 20) {
+        if (phone && (
+            phone.length > 20 ||
+            !/^[+\d\s()-]+$/.test(phone)
+        )) {
             return res.status(400).json({
                 status: 'ERROR',
-                message: 'The phone number is too long.'
+                message: 'Please provide a valid phone number.'
             });
         }
 
@@ -112,7 +115,10 @@ exports.registerUser = async (req, res) => {
             });
         }
 
-        console.error('User registration failed:', error.message);
+        console.error(
+            'User registration failed:',
+            error.code || error.message
+        );
 
         return res.status(500).json({
             status: 'ERROR',
@@ -123,46 +129,96 @@ exports.registerUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
     try {
-        const { email_address, password } = req.body;
+        const { identifier, email_address, password } = req.body || {};
 
-        if (!email_address || !password) {
+        const loginIdentifier = typeof identifier === 'string'
+            ? identifier.trim()
+            : typeof email_address === 'string'
+                ? email_address.trim()
+                : '';
+
+        if (
+            !loginIdentifier ||
+            typeof password !== 'string' ||
+            !password
+        ) {
             return res.status(400).json({
                 status: 'ERROR',
-                message: 'Please provide email and password.'
+                message: 'Please provide your email or phone number and password.'
             });
         }
 
+        if (loginIdentifier.length > 255 || password.length > 72) {
+            return res.status(400).json({
+                status: 'ERROR',
+                message: 'Invalid email, phone number, or password.'
+            });
+        }
+
+        const normalizedIdentifier = loginIdentifier.toLowerCase();
+
         const [rows] = await db.execute(
-            `SELECT * FROM users WHERE email_address = ? LIMIT 1`,
-            [email_address.trim().toLowerCase()]
+            `SELECT
+                user_id,
+                full_name,
+                phone_number,
+                email_address,
+                password_hash,
+                user_role,
+                account_status
+             FROM users
+             WHERE email_address = ?
+                OR phone_number = ?
+             LIMIT 1`,
+            [normalizedIdentifier, loginIdentifier]
         );
 
         if (rows.length === 0) {
             return res.status(401).json({
                 status: 'ERROR',
-                message: 'Invalid email or password.'
+                message: 'Invalid email, phone number, or password.'
             });
         }
 
         const user = rows[0];
 
-        const isMatch = await bcrypt.compare(password, user.password_hash);
-        if (!isMatch) {
+        const isMatch = await bcrypt.compare(
+            password,
+            user.password_hash
+        );
+
+        if (!isMatch || user.account_status !== 'ACTIVE') {
             return res.status(401).json({
                 status: 'ERROR',
-                message: 'Invalid email or password.'
+                message: 'Invalid email, phone number, or password.'
+            });
+        }
+
+        const secret = process.env.JWT_SECRET;
+
+        if (!secret) {
+            console.error('JWT_SECRET is not configured.');
+
+            return res.status(500).json({
+                status: 'ERROR',
+                message: 'Authentication service is unavailable.'
             });
         }
 
         const token = jwt.sign(
-            { sub: user.user_id, role: user.user_role },
-            process.env.JWT_SECRET,
-            { expiresIn: '7d' }
+            {
+                sub: String(user.user_id)
+            },
+            secret,
+            {
+                algorithm: 'HS256',
+                expiresIn: '7d'
+            }
         );
 
         return res.status(200).json({
             status: 'SUCCESS',
-            message: 'Login successful',
+            message: 'Login successful.',
             token,
             user: {
                 id: user.user_id,
@@ -171,7 +227,11 @@ exports.loginUser = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Login failed:', error.message);
+        console.error(
+            'Login failed:',
+            error.code || error.message
+        );
+
         return res.status(500).json({
             status: 'ERROR',
             message: 'An internal server error occurred.'
@@ -217,7 +277,10 @@ exports.getAllUsers = async (req, res) => {
             data: rows
         });
     } catch (error) {
-        console.error('User retrieval failed:', error.message);
+        console.error(
+            'User retrieval failed:',
+            error.code || error.message
+        );
 
         return res.status(500).json({
             status: 'ERROR',
