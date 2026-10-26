@@ -1,7 +1,9 @@
+
 'use strict';
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const authController = require('./controllers/authController');
 const requestController = require('./controllers/requestController');
@@ -19,7 +21,13 @@ app.use(express.urlencoded({
     limit: '1mb'
 }));
 
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/api', (req, res) => {
     res.status(200).json({
         status: 'SUCCESS',
         system: 'SANAD API',
@@ -50,27 +58,38 @@ app.get(
     requestController.getAllRequests
 );
 
-app.post('/api/alerts/emergency', authMiddleware, (req, res) => {
-    res.status(200).json({
-        status: 'SUCCESS',
-        message: 'Emergency alert dispatched successfully'
-    });
-});
+app.post(
+    '/api/alerts/emergency',
+    authMiddleware,
+    (req, res) => {
+        res.status(501).json({
+            status: 'ERROR',
+            message: 'Emergency alert service is not implemented yet'
+        });
+    }
+);
 
-app.get('/api/caregiver/requests', authMiddleware, (req, res) => {
-    res.status(200).json({
-        status: 'SUCCESS',
-        requests: []
-    });
-});
+app.get(
+    '/api/caregiver/requests',
+    authMiddleware,
+    (req, res) => {
+        res.status(501).json({
+            status: 'ERROR',
+            message: 'Caregiver request retrieval is not implemented yet'
+        });
+    }
+);
 
-app.get('/api/admin/stats', authMiddleware, (req, res) => {
-    res.status(200).json({
-        status: 'SUCCESS',
-        totalUsers: 24,
-        activeAlerts: 0
-    });
-});
+app.get(
+    '/api/admin/stats',
+    authMiddleware,
+    (req, res) => {
+        res.status(501).json({
+            status: 'ERROR',
+            message: 'Admin statistics are not implemented yet'
+        });
+    }
+);
 
 app.use((req, res) => {
     res.status(404).json({
