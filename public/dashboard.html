@@ -13,7 +13,7 @@
             font-family: 'Cairo', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
-        
+
         body {
             background-color: #1a252f;
             background-image: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
@@ -199,7 +199,8 @@
             outline: none;
         }
 
-        .btn-mic:active, .btn-mic.listening {
+        .btn-mic:active,
+        .btn-mic.listening {
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             transform: scale(1.1);
             box-shadow: 0 0 25px rgba(231, 76, 60, 0.7);
@@ -241,6 +242,7 @@
             color: #7f8c8d;
             margin-bottom: 20px;
             font-weight: 700;
+            white-space: pre-line;
         }
 
         .btn-close-modal {
@@ -258,12 +260,43 @@
         .hidden {
             display: none !important;
         }
+
+        @media (max-width: 360px) {
+            .screen-header {
+                padding: 15px 12px;
+            }
+
+            .header-title {
+                font-size: 17px;
+            }
+
+            .header-location {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+
+            .screen-content {
+                padding: 12px;
+            }
+
+            .grid-container {
+                gap: 10px;
+            }
+
+            .dash-card {
+                min-height: 140px;
+                padding: 15px 8px;
+            }
+
+            .dash-card .card-title {
+                font-size: 17px;
+            }
+        }
     </style>
 </head>
 <body>
 
     <div class="phone-container">
-        
         <div class="screen-header">
             <div class="header-title">
                 <span>🤝</span> سند - كبار السن
@@ -274,13 +307,11 @@
         </div>
 
         <div class="screen-content">
-            
             <div class="status-banner">
                 <span>✅</span> حالة النظام: متصل وجاهز للخدمة
             </div>
 
             <div class="grid-container">
-                
                 <button class="dash-card card-emergency" onclick="triggerEmergency()">
                     <div class="card-icon">🚨</div>
                     <div class="card-title">حالة طوارئ!</div>
@@ -304,24 +335,22 @@
                     <div class="card-title">تنبيهات الدواء</div>
                     <div class="card-sub">مواعيد أدوية اليوم</div>
                 </button>
-
             </div>
 
             <div class="voice-section">
                 <div class="voice-title">الأوامر الصوتية الذكية</div>
                 <div class="voice-sub">نادِ: "يا سند، طوارئ!"</div>
-                <button class="btn-mic" id="micBtn" onclick="toggleVoiceRecognition()">
+                <button class="btn-mic" id="micBtn" onclick="toggleVoiceRecognition()" aria-label="تشغيل الأوامر الصوتية">
                     🎤
                 </button>
                 <div id="voiceStatus" style="font-size: 13px; color: #7f8c8d; font-weight: 700;">
-                    اضغط الميكروفون للتحدث الان
+                    اضغط الميكروفون للتحدث الآن
                 </div>
             </div>
-
         </div>
     </div>
 
-    <div id="alertModal" class="custom-alert-overlay hidden">
+    <div id="alertModal" class="custom-alert-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="alert-modal">
             <div id="modalIcon" style="font-size: 50px; margin-bottom: 10px;">🔔</div>
             <h2 id="modalTitle">تنبيه</h2>
@@ -343,67 +372,123 @@
         }
 
         async function triggerEmergency() {
-            showModal('🚨 طوارئ عاجلة!', 'جاري إرسال إشعار استغاثة للمساعدين وأفراد العائلة فوراً...', '🚨');
-            
+            showModal(
+                'طوارئ عاجلة!',
+                'تم تسجيل ضغط زر الطوارئ في الواجهة. يجري محاولة إرسال البلاغ إلى الخادم.',
+                '🚨'
+            );
+
             try {
                 const token = localStorage.getItem('sanad_token');
-                await fetch('/api/alerts/emergency', {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+
+                if (token) {
+                    headers.Authorization = 'Bearer ' + token;
+                }
+
+                const response = await fetch('/api/alerts/emergency', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({ type: 'EMERGENCY_BUTTON', timestamp: new Date().toISOString() })
+                    headers,
+                    body: JSON.stringify({
+                        type: 'EMERGENCY_BUTTON',
+                        timestamp: new Date().toISOString()
+                    })
                 });
+
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+
+                showModal('تم إرسال البلاغ', 'استقبل الخادم طلب الطوارئ بنجاح.', '✅');
             } catch (error) {
                 console.error('Emergency trigger error:', error);
+                showModal(
+                    'تعذر تأكيد الإرسال',
+                    'ظهرت الواجهة، لكن لم نتمكن من تأكيد إرسال البلاغ إلى الخادم. تحقق من تشغيل الخادم ووجود المسار المطلوب.',
+                    '⚠️'
+                );
             }
         }
 
         function requestCare() {
-            showModal('👨‍⚕️ طلب رعاية', 'تم إرسال طلبك لمقدم الرعاية، سيتم التواصل معك خلال لحظات.', '📞');
+            showModal(
+                'طلب رعاية',
+                'هذه الواجهة جاهزة لعرض طلب الرعاية. لا يُعد الطلب مسجلاً في قاعدة البيانات إلا بعد ربط الزر بمسار API يعمل.',
+                '👨‍⚕️'
+            );
         }
 
         function callFamily() {
-            showModal('👨‍👩‍👧‍👦 الاتصال بالعائلة', 'جاري تجهيز الاتصال السريع بأقرب قريب مسجل...', '📲');
+            showModal(
+                'الاتصال بالعائلة',
+                'لا يوجد اتصال هاتفي فعلي مهيأ بعد. يلزم إضافة رقم قريب مسجل وربط زر الاتصال به.',
+                '👨‍👩‍👧‍👦'
+            );
         }
 
         function showMedications() {
-            showModal('💊 مواعيد الأدوية', 'دواء الضغط: الساعة 8:00 صباحاً (تم الأخذ)\nدواء السكر: الساعة 2:00 ظهراً', '📋');
+            showModal(
+                'مواعيد الأدوية',
+                'لا توجد بيانات أدوية محمّلة من الخادم في هذه النسخة. ستظهر المواعيد الفعلية بعد ربطها بقاعدة البيانات.',
+                '💊'
+            );
         }
 
         let isListening = false;
         let recognition = null;
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const SpeechRecognition =
+                window.SpeechRecognition || window.webkitSpeechRecognition;
+
             recognition = new SpeechRecognition();
             recognition.lang = 'ar-SA';
             recognition.continuous = false;
+            recognition.interimResults = false;
 
             recognition.onstart = function() {
                 isListening = true;
                 document.getElementById('micBtn').classList.add('listening');
-                document.getElementById('voiceStatus').textContent = 'جاري الاستماع إليك... اتكلم الآن';
+                document.getElementById('voiceStatus').textContent =
+                    'جاري الاستماع إليك... تحدث الآن';
             };
 
             recognition.onresult = function(event) {
                 const transcript = event.results[0][0].transcript;
-                document.getElementById('voiceStatus').textContent = 'سمعت: "' + transcript + '"';
-                
-                if (transcript.includes('طوارئ') || transcript.includes('سند')) {
+                document.getElementById('voiceStatus').textContent =
+                    'سمعت: "' + transcript + '"';
+
+                if (transcript.includes('طوارئ')) {
                     triggerEmergency();
-                } else if (transcript.includes('دواء') || transcript.includes('علاج')) {
+                } else if (
+                    transcript.includes('رعاية') ||
+                    transcript.includes('مساعدة')
+                ) {
+                    requestCare();
+                } else if (
+                    transcript.includes('دواء') ||
+                    transcript.includes('علاج')
+                ) {
                     showMedications();
-                } else if (transcript.includes('عائلة') || transcript.includes('اتصل')) {
+                } else if (
+                    transcript.includes('عائلة') ||
+                    transcript.includes('اتصل')
+                ) {
                     callFamily();
                 } else {
-                    showModal('🎙️ الأمر الصوتي', 'تم الاستماع لـ: ' + transcript, '🗣️');
+                    showModal(
+                        'الأمر الصوتي',
+                        'تم التعرف على الأمر: ' + transcript,
+                        '🎙️'
+                    );
                 }
             };
 
             recognition.onerror = function() {
-                document.getElementById('voiceStatus').textContent = 'لم أتمكن من السماع بوضوح، حاول مرة أخرى';
+                document.getElementById('voiceStatus').textContent =
+                    'لم أتمكن من السماع بوضوح، حاول مرة أخرى';
                 document.getElementById('micBtn').classList.remove('listening');
                 isListening = false;
             };
@@ -416,14 +501,26 @@
 
         function toggleVoiceRecognition() {
             if (!recognition) {
-                showModal('تنبيه الصوت', 'خاصية التعرف على الصوت غير مدعومة في هذا المتصفح', '⚠️');
+                showModal(
+                    'تنبيه الصوت',
+                    'خاصية التعرف على الصوت غير مدعومة في هذا المتصفح.',
+                    '⚠️'
+                );
                 return;
             }
 
             if (isListening) {
                 recognition.stop();
             } else {
-                recognition.start();
+                try {
+                    recognition.start();
+                } catch (error) {
+                    showModal(
+                        'تعذر تشغيل الميكروفون',
+                        'تحقق من إذن الميكروفون، واستخدم متصفحاً يدعم التعرف على الصوت.',
+                        '⚠️'
+                    );
+                }
             }
         }
     </script>
