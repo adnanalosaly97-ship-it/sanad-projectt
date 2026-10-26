@@ -1,7 +1,8 @@
-
 'use strict';
 
 const db = require('../config/db');
+
+const ALLOWED_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 
 exports.createRequest = async (req, res) => {
     try {
@@ -12,7 +13,7 @@ exports.createRequest = async (req, res) => {
             });
         }
 
-        const { request_type, description, priority_level } = req.body;
+        const { request_type, description, priority_level } = req.body || {};
 
         if (
             typeof request_type !== 'string' ||
@@ -46,16 +47,12 @@ exports.createRequest = async (req, res) => {
             });
         }
 
-        const allowedPriorities = [
-            'LOW',
-            'MEDIUM',
-            'HIGH',
-            'CRITICAL'
-        ];
-
         const priority = priority_level || 'MEDIUM';
 
-        if (!allowedPriorities.includes(priority)) {
+        if (
+            typeof priority !== 'string' ||
+            !ALLOWED_PRIORITIES.includes(priority)
+        ) {
             return res.status(400).json({
                 status: 'ERROR',
                 message: 'Invalid priority level.'
@@ -88,7 +85,7 @@ exports.createRequest = async (req, res) => {
             requestId: result.insertId
         });
     } catch (error) {
-        console.error('Request creation failed:', error.message);
+        console.error('Request creation failed:', error.code || error.message);
 
         return res.status(500).json({
             status: 'ERROR',
@@ -130,7 +127,7 @@ exports.getAllRequests = async (req, res) => {
             data: rows
         });
     } catch (error) {
-        console.error('Request retrieval failed:', error.message);
+        console.error('Request retrieval failed:', error.code || error.message);
 
         return res.status(500).json({
             status: 'ERROR',
