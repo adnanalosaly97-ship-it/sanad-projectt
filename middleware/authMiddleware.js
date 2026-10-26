@@ -1,4 +1,3 @@
-
 'use strict';
 
 const jwt = require('jsonwebtoken');
@@ -42,10 +41,14 @@ module.exports = async (req, res, next) => {
             algorithms: ['HS256']
         });
 
+        const userId = Number(decoded.sub);
+
         if (
-            !decoded.sub ||
-            !Number.isInteger(Number(decoded.sub)) ||
-            Number(decoded.sub) <= 0
+            decoded.sub === undefined ||
+            decoded.sub === null ||
+            decoded.sub === '' ||
+            !Number.isSafeInteger(userId) ||
+            userId <= 0
         ) {
             return res.status(401).json({
                 status: 'ERROR',
@@ -58,7 +61,7 @@ module.exports = async (req, res, next) => {
              FROM users
              WHERE user_id = ?
              LIMIT 1`,
-            [Number(decoded.sub)]
+            [userId]
         );
 
         if (
@@ -89,7 +92,10 @@ module.exports = async (req, res, next) => {
             });
         }
 
-        console.error('Authentication failed:', error.message);
+        console.error(
+            'Authentication failed:',
+            error.code || error.message
+        );
 
         return res.status(500).json({
             status: 'ERROR',
