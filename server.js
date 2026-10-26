@@ -1,4 +1,3 @@
-
 'use strict';
 
 const express = require('express');
@@ -10,7 +9,12 @@ const requestController = require('./controllers/requestController');
 const authMiddleware = require('./middleware/authMiddleware');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+const PORT = Number(process.env.PORT || 3000);
+
+if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
+    throw new Error('PORT must be a valid port number.');
+}
 
 app.disable('x-powered-by');
 
@@ -62,7 +66,7 @@ app.post(
     '/api/alerts/emergency',
     authMiddleware,
     (req, res) => {
-        res.status(501).json({
+        return res.status(501).json({
             status: 'ERROR',
             message: 'Emergency alert service is not implemented yet'
         });
@@ -73,7 +77,7 @@ app.get(
     '/api/caregiver/requests',
     authMiddleware,
     (req, res) => {
-        res.status(501).json({
+        return res.status(501).json({
             status: 'ERROR',
             message: 'Caregiver request retrieval is not implemented yet'
         });
@@ -84,7 +88,7 @@ app.get(
     '/api/admin/stats',
     authMiddleware,
     (req, res) => {
-        res.status(501).json({
+        return res.status(501).json({
             status: 'ERROR',
             message: 'Admin statistics are not implemented yet'
         });
@@ -92,7 +96,7 @@ app.get(
 );
 
 app.use((req, res) => {
-    res.status(404).json({
+    return res.status(404).json({
         status: 'ERROR',
         message: 'The requested route was not found'
     });
@@ -103,6 +107,20 @@ app.use((err, req, res, next) => {
         return next(err);
     }
 
+    if (err.type === 'entity.parse.failed') {
+        return res.status(400).json({
+            status: 'ERROR',
+            message: 'Invalid JSON request body.'
+        });
+    }
+
+    if (err.type === 'entity.too.large') {
+        return res.status(413).json({
+            status: 'ERROR',
+            message: 'Request body is too large.'
+        });
+    }
+
     console.error('Request error:', err.message);
 
     const statusCode = Number.isInteger(err.status) &&
@@ -111,7 +129,7 @@ app.use((err, req, res, next) => {
         ? err.status
         : 500;
 
-    res.status(statusCode).json({
+    return res.status(statusCode).json({
         status: 'ERROR',
         message: statusCode >= 500
             ? 'An internal server error occurred'
