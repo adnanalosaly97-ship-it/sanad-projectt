@@ -46,7 +46,13 @@ exports.createRequest = async (req, res) => {
             });
         }
 
-        const allowedPriorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
+        const allowedPriorities = [
+            'LOW',
+            'MEDIUM',
+            'HIGH',
+            'CRITICAL'
+        ];
+
         const priority = priority_level || 'MEDIUM';
 
         if (!allowedPriorities.includes(priority)) {
@@ -71,7 +77,9 @@ exports.createRequest = async (req, res) => {
             req.user.user_id,
             request_type.trim(),
             priority,
-            description ? description.trim() || null : null
+            typeof description === 'string'
+                ? description.trim() || null
+                : null
         ]);
 
         return res.status(201).json({
