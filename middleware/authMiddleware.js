@@ -7,7 +7,10 @@ const db = require('../config/db');
 module.exports = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (
+        typeof authHeader !== 'string' ||
+        !authHeader.startsWith('Bearer ')
+    ) {
         return res.status(401).json({
             status: 'ERROR',
             message: 'Authentication required.'
@@ -15,6 +18,14 @@ module.exports = async (req, res, next) => {
     }
 
     const token = authHeader.slice(7).trim();
+
+    if (!token) {
+        return res.status(401).json({
+            status: 'ERROR',
+            message: 'Authentication token is missing.'
+        });
+    }
+
     const secret = process.env.JWT_SECRET;
 
     if (!secret) {
@@ -31,7 +42,11 @@ module.exports = async (req, res, next) => {
             algorithms: ['HS256']
         });
 
-        if (!decoded.sub || !Number.isInteger(Number(decoded.sub))) {
+        if (
+            !decoded.sub ||
+            !Number.isInteger(Number(decoded.sub)) ||
+            Number(decoded.sub) <= 0
+        ) {
             return res.status(401).json({
                 status: 'ERROR',
                 message: 'Invalid authentication token.'
@@ -63,20 +78,22 @@ module.exports = async (req, res, next) => {
 
         return next();
     } catch (error) {
-        if (error.name !== 'JsonWebTokenError' &&
-            error.name !== 'TokenExpiredError' &&
-            error.name !== 'NotBeforeError') {
-            console.error('Authentication failed:', error.message);
-
-            return res.status(500).json({
+        if (
+            error.name === 'JsonWebTokenError' ||
+            error.name === 'TokenExpiredError' ||
+            error.name === 'NotBeforeError'
+        ) {
+            return res.status(401).json({
                 status: 'ERROR',
-                message: 'Authentication service is unavailable.'
+                message: 'Invalid or expired authentication token.'
             });
         }
 
-        return res.status(401).json({
+        console.error('Authentication failed:', error.message);
+
+        return res.status(500).json({
             status: 'ERROR',
-            message: 'Invalid or expired authentication token.'
+            message: 'Authentication service is unavailable.'
         });
     }
 };
