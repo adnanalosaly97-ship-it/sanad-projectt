@@ -38,7 +38,7 @@
         .screen-header {
             background: #8e44ad;
             color: white;
-            padding: 20px 20px 15px 20px;
+            padding: 20px 20px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -55,7 +55,7 @@
 
         .header-status {
             font-size: 13px;
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255,255,255,0.25);
             padding: 4px 12px;
             border-radius: 20px;
             font-weight: 700;
@@ -104,6 +104,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 8px;
         }
 
         .user-list {
@@ -120,6 +121,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 8px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.03);
         }
 
@@ -127,11 +129,13 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            min-width: 0;
         }
 
         .user-avatar {
             width: 40px;
             height: 40px;
+            flex-shrink: 0;
             background: #f3e5f5;
             color: #8e44ad;
             border-radius: 50%;
@@ -142,10 +146,15 @@
             font-weight: 800;
         }
 
+        .user-details {
+            min-width: 0;
+        }
+
         .user-details h5 {
             font-size: 14px;
             color: #2c3e50;
             font-weight: 800;
+            overflow-wrap: anywhere;
         }
 
         .user-details span {
@@ -159,6 +168,7 @@
             padding: 4px 8px;
             border-radius: 8px;
             font-weight: 800;
+            white-space: nowrap;
         }
 
         .role-elderly {
@@ -171,6 +181,11 @@
             color: #2980b9;
         }
 
+        .role-admin {
+            background: #f3e5f5;
+            color: #8e44ad;
+        }
+
         .btn-action {
             background: #f8fafc;
             border: 1px solid #cbd5e0;
@@ -180,6 +195,7 @@
             font-weight: 700;
             cursor: pointer;
             color: #4a5568;
+            flex-shrink: 0;
         }
 
         .btn-action:hover {
@@ -203,6 +219,7 @@
             border-bottom: 1px dashed #e2e8f0;
             display: flex;
             justify-content: space-between;
+            gap: 8px;
         }
 
         .log-item:last-child {
@@ -244,6 +261,7 @@
             color: #7f8c8d;
             margin-bottom: 20px;
             font-weight: 700;
+            overflow-wrap: anywhere;
         }
 
         .btn-close-modal {
@@ -261,12 +279,30 @@
         .hidden {
             display: none !important;
         }
+
+        @media (max-width: 360px) {
+            .screen-content {
+                padding: 12px;
+            }
+
+            .user-item {
+                padding: 10px;
+            }
+
+            .role-badge {
+                font-size: 10px;
+                padding: 4px 5px;
+            }
+
+            .btn-action {
+                padding: 5px 7px;
+            }
+        }
     </style>
 </head>
 <body>
 
     <div class="phone-container">
-        
         <div class="screen-header">
             <div class="header-title">
                 <span>⚙️</span> لوحة الإدارة
@@ -277,61 +313,35 @@
         </div>
 
         <div class="screen-content">
-            
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="num" id="totalUsers">24</div>
+                    <div class="num" id="totalUsers">—</div>
                     <div class="label">إجمالي المستخدمين</div>
                 </div>
                 <div class="stat-card">
-                    <div class="num" id="activeAlerts">0</div>
+                    <div class="num" id="activeAlerts">—</div>
                     <div class="label">بلاغات نشطة</div>
                 </div>
             </div>
 
-            <div class="section-title">
-                <span>إدارة المستخدمين</span>
-                <button class="btn-action" onclick="addUserModal()">+ إضافة جديد</button>
+            <div id="adminMessage"
+                 role="status"
+                 aria-live="polite"
+                 style="display:none;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:10px;color:#4a5568;font-size:12px;">
             </div>
 
-            <div class="user-list">
-                
-                <div class="user-item">
-                    <div class="user-info">
-                        <div class="user-avatar">👴</div>
-                        <div class="user-details">
-                            <h5>عبد الله علي</h5>
-                            <span>كبير سن (مستفيد)</span>
-                        </div>
-                    </div>
-                    <span class="role-badge role-elderly">مستفيد</span>
-                    <button class="btn-action" onclick="editUser('عبد الله علي')">تعديل</button>
-                </div>
+            <div class="section-title">
+                <span>إدارة المستخدمين</span>
+                <button type="button" class="btn-action" onclick="addUserModal()">+ إضافة جديد</button>
+            </div>
 
+            <div class="user-list" id="adminUserList">
                 <div class="user-item">
-                    <div class="user-info">
-                        <div class="user-avatar">👨‍⚕️</div>
-                        <div class="user-details">
-                            <h5>د. محمد خالد</h5>
-                            <span>مقدم رعاية</span>
-                        </div>
+                    <div class="user-details">
+                        <h5>جارٍ تحميل المستخدمين...</h5>
+                        <span>يرجى الانتظار</span>
                     </div>
-                    <span class="role-badge role-helper">مساعد</span>
-                    <button class="btn-action" onclick="editUser('د. محمد خالد')">تعديل</button>
                 </div>
-
-                <div class="user-item">
-                    <div class="user-info">
-                        <div class="user-avatar">👩‍⚕️</div>
-                        <div class="user-details">
-                            <h5>سارة أحمد</h5>
-                            <span>مقدم رعاية</span>
-                        </div>
-                    </div>
-                    <span class="role-badge role-helper">مساعد</span>
-                    <button class="btn-action" onclick="editUser('سارة أحمد')">تعديل</button>
-                </div>
-
             </div>
 
             <div class="section-title">
@@ -340,28 +350,23 @@
 
             <div class="system-logs">
                 <div class="log-item">
-                    <span>تسجيل دخول - مدير النظام</span>
-                    <span style="color: #95a5a6;">الآن</span>
+                    <span>سجل الأحداث</span>
+                    <span style="color:#95a5a6;">غير مرتبط</span>
                 </div>
                 <div class="log-item">
-                    <span>تحديث جدول الأدوية - الوالد عبد الله</span>
-                    <span style="color: #95a5a6;">منذ 10 د</span>
-                </div>
-                <div class="log-item">
-                    <span>فحص اتصال خادم API</span>
-                    <span style="color: #27ae60; font-weight: bold;">سليم ✅</span>
+                    <span>عرض السجلات الفعلية</span>
+                    <span style="color:#95a5a6;">يتطلب مسار API</span>
                 </div>
             </div>
-
         </div>
     </div>
 
     <div id="alertModal" class="custom-alert-overlay hidden">
         <div class="alert-modal">
-            <div id="modalIcon" style="font-size: 45px; margin-bottom: 10px;">⚙️</div>
+            <div id="modalIcon" style="font-size:45px;margin-bottom:10px;">⚙️</div>
             <h2 id="modalTitle">إدارة النظام</h2>
             <p id="modalMessage">التفاصيل هنا</p>
-            <button class="btn-close-modal" onclick="closeModal()">إغلاق</button>
+            <button type="button" class="btn-close-modal" onclick="closeModal()">إغلاق</button>
         </div>
     </div>
 
@@ -377,33 +382,266 @@
             document.getElementById('alertModal').classList.add('hidden');
         }
 
-        function editUser(userName) {
-            showModal('تعديل حساب', 'جاري فتح نافذة تعديل الصلاحيات للمستخدم: ' + userName, '✏️');
+        function showAdminMessage(message) {
+            const element = document.getElementById('adminMessage');
+            element.textContent = message;
+            element.style.display = 'block';
         }
 
-        function addUserModal() {
-            showModal('إضافة مستخدم جديد', 'يمكنك إضافة كبار السن أو المساعدين وتحديد أدوارهم في النظام.', '➕');
-        }
+        async function adminRequest(path) {
+            const token = localStorage.getItem('sanad_token');
 
-        async function fetchAdminStats() {
+            if (!token) {
+                throw new Error('NO_TOKEN');
+            }
+
+            const response = await fetch(path, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Accept': 'application/json'
+                }
+            });
+
+            let data = {};
+
             try {
-                const token = localStorage.getItem('sanad_token');
-                const response = await fetch('/api/admin/stats', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
+                data = await response.json();
+            } catch (error) {
+                data = {};
+            }
+
+            if (response.status === 401) {
+                throw new Error('UNAUTHORIZED');
+            }
+
+            if (response.status === 403) {
+                throw new Error('FORBIDDEN');
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message ||
+                    data.error ||
+                    'تعذر تنفيذ الطلب. رمز الخطأ: ' + response.status
+                );
+            }
+
+            return data;
+        }
+
+        function getUserRole(user) {
+            return String(
+                user.user_role ||
+                user.role ||
+                ''
+            ).toUpperCase();
+        }
+
+        function getRoleDetails(role) {
+            if (role === 'ELDERLY') {
+                return {
+                    label: 'مستفيد',
+                    description: 'كبير سن (مستفيد)',
+                    avatar: '👴',
+                    className: 'role-elderly'
+                };
+            }
+
+            if (role === 'HELPER') {
+                return {
+                    label: 'مساعد',
+                    description: 'مقدم رعاية',
+                    avatar: '👨‍⚕️',
+                    className: 'role-helper'
+                };
+            }
+
+            if (role === 'ADMIN') {
+                return {
+                    label: 'مدير',
+                    description: 'مدير النظام',
+                    avatar: '👑',
+                    className: 'role-admin'
+                };
+            }
+
+            return {
+                label: 'مستخدم',
+                description: 'دور غير محدد',
+                avatar: '👤',
+                className: 'role-helper'
+            };
+        }
+
+        function createElement(tag, className, text) {
+            const element = document.createElement(tag);
+
+            if (className) {
+                element.className = className;
+            }
+
+            if (text !== undefined) {
+                element.textContent = text;
+            }
+
+            return element;
+        }
+
+        function renderUsers(users) {
+            const list = document.getElementById('adminUserList');
+            list.replaceChildren();
+
+            if (!users.length) {
+                const item = createElement('div', 'user-item');
+                const details = createElement('div', 'user-details');
+                details.appendChild(
+                    createElement('h5', '', 'لا يوجد مستخدمون مسجلون')
+                );
+                details.appendChild(
+                    createElement('span', '', 'ستظهر الحسابات هنا بعد تسجيلها')
+                );
+                item.appendChild(details);
+                list.appendChild(item);
+                return;
+            }
+
+            users.forEach(function(user) {
+                const name = String(
+                    user.full_name ||
+                    user.name ||
+                    'مستخدم بدون اسم'
+                );
+
+                const role = getRoleDetails(getUserRole(user));
+
+                const item = createElement('div', 'user-item');
+                const info = createElement('div', 'user-info');
+                const avatar = createElement('div', 'user-avatar', role.avatar);
+                const details = createElement('div', 'user-details');
+
+                details.appendChild(createElement('h5', '', name));
+                details.appendChild(
+                    createElement('span', '', role.description)
+                );
+
+                info.appendChild(avatar);
+                info.appendChild(details);
+
+                const badge = createElement(
+                    'span',
+                    'role-badge ' + role.className,
+                    role.label
+                );
+
+                const editButton = createElement(
+                    'button',
+                    'btn-action',
+                    'تعديل'
+                );
+
+                editButton.type = 'button';
+                editButton.addEventListener('click', function() {
+                    editUser(name);
                 });
-                if(response.ok) {
-                    const data = await response.json();
-                    if(data.totalUsers) document.getElementById('totalUsers').textContent = data.totalUsers;
-                    if(data.activeAlerts !== undefined) document.getElementById('activeAlerts').textContent = data.activeAlerts;
+
+                item.appendChild(info);
+                item.appendChild(badge);
+                item.appendChild(editButton);
+
+                list.appendChild(item);
+            });
+        }
+
+        function getFriendlyError(error) {
+            if (error.message === 'NO_TOKEN') {
+                return 'يرجى تسجيل الدخول أولًا بحساب المدير.';
+            }
+
+            if (error.message === 'UNAUTHORIZED') {
+                return 'انتهت صلاحية تسجيل الدخول أو أن رمز الدخول غير صحيح. سجّل الدخول مجددًا.';
+            }
+
+            if (error.message === 'FORBIDDEN') {
+                return 'هذا الحساب لا يملك صلاحية عرض المستخدمين. يلزم الدخول بحساب مدير.';
+            }
+
+            if (error instanceof TypeError) {
+                return 'تعذر الاتصال بالخادم. تحقق من تشغيل الخادم واتصال الإنترنت.';
+            }
+
+            return error.message || 'حدث خطأ غير متوقع أثناء تحميل المستخدمين.';
+        }
+
+        async function fetchAdminUsers() {
+            const list = document.getElementById('adminUserList');
+            const total = document.getElementById('totalUsers');
+
+            try {
+                const data = await adminRequest('/api/auth/users');
+
+                const users = Array.isArray(data)
+                    ? data
+                    : Array.isArray(data.users)
+                        ? data.users
+                        : Array.isArray(data.data)
+                            ? data.data
+                            : null;
+
+                if (!users) {
+                    throw new Error('استجابة الخادم لا تحتوي على قائمة مستخدمين معروفة.');
+                }
+
+                renderUsers(users);
+                total.textContent = String(users.length);
+
+                if (users.length === 0) {
+                    showAdminMessage('تم الاتصال بالخادم، لكن لا توجد حسابات مسجلة حتى الآن.');
+                } else {
+                    showAdminMessage('تم تحميل المستخدمين من الخادم بنجاح.');
                 }
             } catch (error) {
-                console.error('Admin stats fetch error:', error);
+                total.textContent = '—';
+
+                list.replaceChildren();
+
+                const item = createElement('div', 'user-item');
+                const details = createElement('div', 'user-details');
+
+                details.appendChild(
+                    createElement('h5', '', 'تعذر تحميل المستخدمين')
+                );
+                details.appendChild(
+                    createElement('span', '', getFriendlyError(error))
+                );
+
+                item.appendChild(details);
+                list.appendChild(item);
+
+                showAdminMessage(getFriendlyError(error));
             }
         }
 
-        fetchAdminStats();
+        function editUser(userName) {
+            showModal(
+                'تعديل حساب',
+                'تم اختيار المستخدم: ' + userName +
+                '. تعديل بيانات الحساب يحتاج إلى مسار تحديث في الخادم.',
+                '✏️'
+            );
+        }
+
+        function addUserModal() {
+            showModal(
+                'إضافة مستخدم جديد',
+                'تسجيل الحسابات يتم حاليًا عبر واجهة التسجيل. الإضافة المباشرة من لوحة الإدارة تحتاج إلى مسار API مخصص.',
+                '➕'
+            );
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchAdminUsers();
+        });
     </script>
 </body>
 </html>
