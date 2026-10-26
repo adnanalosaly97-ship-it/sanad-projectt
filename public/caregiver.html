@@ -38,7 +38,7 @@
         .screen-header {
             background: #16a085;
             color: white;
-            padding: 20px 20px 15px 20px;
+            padding: 20px 20px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -55,7 +55,7 @@
 
         .header-status {
             font-size: 13px;
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255,255,255,0.25);
             padding: 4px 12px;
             border-radius: 20px;
             font-weight: 700;
@@ -78,14 +78,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.35);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
-            70% { box-shadow: 0 0 0 12px rgba(231, 76, 60, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+            gap: 8px;
+            box-shadow: 0 8px 20px rgba(231,76,60,0.25);
         }
 
         .emergency-info h3 {
@@ -100,13 +94,13 @@
         }
 
         .btn-respond {
-            background: #ffffff;
+            background: #fff;
             color: #c0392b;
             border: none;
-            padding: 8px 16px;
+            padding: 8px 12px;
             border-radius: 12px;
             font-weight: 900;
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
         }
 
@@ -117,14 +111,15 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 8px;
         }
 
         .patient-card {
-            background: #ffffff;
+            background: #fff;
             border-radius: 20px;
             padding: 15px;
             border: 2px solid #e2e8f0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -133,6 +128,7 @@
         .patient-avatar {
             width: 55px;
             height: 55px;
+            flex-shrink: 0;
             background: #e8f8f5;
             color: #16a085;
             border-radius: 50%;
@@ -143,16 +139,22 @@
             font-weight: 800;
         }
 
+        .patient-details {
+            min-width: 0;
+        }
+
         .patient-details h4 {
             font-size: 16px;
             color: #2c3e50;
             font-weight: 800;
+            overflow-wrap: anywhere;
         }
 
         .patient-details p {
             font-size: 12px;
             color: #7f8c8d;
             font-weight: 700;
+            overflow-wrap: anywhere;
         }
 
         .requests-list {
@@ -162,7 +164,7 @@
         }
 
         .request-item {
-            background: #ffffff;
+            background: #fff;
             border-radius: 16px;
             padding: 14px;
             border-right: 6px solid #3498db;
@@ -170,6 +172,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 8px;
         }
 
         .request-item.medication {
@@ -180,10 +183,15 @@
             border-right-color: #e74c3c;
         }
 
+        .request-text {
+            min-width: 0;
+        }
+
         .request-text h5 {
             font-size: 14px;
             color: #2c3e50;
             font-weight: 800;
+            overflow-wrap: anywhere;
         }
 
         .request-text span {
@@ -194,7 +202,9 @@
 
         .action-btns {
             display: flex;
+            flex-wrap: wrap;
             gap: 6px;
+            flex-shrink: 0;
         }
 
         .btn-accept {
@@ -226,7 +236,7 @@
         }
 
         .stat-box {
-            background: #ffffff;
+            background: #fff;
             padding: 14px;
             border-radius: 16px;
             text-align: center;
@@ -243,6 +253,16 @@
             font-size: 12px;
             color: #7f8c8d;
             font-weight: 700;
+        }
+
+        .status-message {
+            background: #fff;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 12px;
+            overflow-wrap: anywhere;
         }
 
         .custom-alert-overlay {
@@ -280,6 +300,7 @@
             color: #7f8c8d;
             margin-bottom: 20px;
             font-weight: 700;
+            overflow-wrap: anywhere;
         }
 
         .btn-close-modal {
@@ -297,109 +318,108 @@
         .hidden {
             display: none !important;
         }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 360px) {
+            .screen-content {
+                padding: 12px;
+            }
+
+            .request-item {
+                padding: 10px;
+            }
+
+            .btn-accept,
+            .btn-decline {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+        }
     </style>
 </head>
 <body>
-
     <div class="phone-container">
-        
         <div class="screen-header">
             <div class="header-title">
                 <span>👨‍⚕️</span> لوحة المساعد
             </div>
-            <div class="header-status">
-                🟢 متصل الآن
+            <div class="header-status" id="connectionStatus">
+                جاري التحقق...
             </div>
         </div>
 
         <div class="screen-content">
-            
-            <div class="emergency-banner" id="emergencyBanner">
+            <div id="emergencyBanner" class="emergency-banner hidden">
                 <div class="emergency-info">
-                    <h3>🚨 تنبيه طوارئ نشط!</h3>
-                    <p>الوالد / عبد الله - صالة المنزل</p>
+                    <h3>🚨 طلب عاجل</h3>
+                    <p id="emergencyText">يوجد طلب عاجل يحتاج إلى مراجعة.</p>
                 </div>
-                <button class="btn-respond" onclick="respondEmergency()">استجابة فورية</button>
+                <button type="button" class="btn-respond" id="emergencyButton">
+                    عرض الطلب
+                </button>
             </div>
 
             <div class="section-title">
-                <span>المستفيد المسند إليك</span>
-                <span style="font-size: 12px; color: #16a085;">حالة مستقرة</span>
+                <span>المستفيدون المسندون إليك</span>
+                <span style="font-size:12px;color:#16a085;" id="patientCount">—</span>
             </div>
 
-            <div class="patient-card">
-                <div class="patient-avatar">👴</div>
-                <div class="patient-details">
-                    <h4>الوالد عبد الله علي</h4>
-                    <p>العمر: 74 سنة | الضغط: متزن</p>
-                    <p>📍 الموقع: المنزل (غرفة المعيشة)</p>
+            <div id="patientList">
+                <div class="patient-card">
+                    <div class="patient-avatar">👴</div>
+                    <div class="patient-details">
+                        <h4>جارٍ تحميل البيانات...</h4>
+                        <p>يتم الاتصال بالخادم</p>
+                    </div>
                 </div>
             </div>
 
             <div class="stats-grid">
                 <div class="stat-box">
-                    <div class="stat-number">3</div>
-                    <div class="stat-label">أدوية اليوم</div>
+                    <div class="stat-number" id="todayRequests">—</div>
+                    <div class="stat-label">طلبات اليوم</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-number">100%</div>
-                    <div class="stat-label">نسبة الاستجابة</div>
+                    <div class="stat-number" id="completedRequests">—</div>
+                    <div class="stat-label">الطلبات المكتملة</div>
                 </div>
+            </div>
+
+            <div id="caregiverMessage" class="status-message" role="status" aria-live="polite">
+                جارٍ تحميل الطلبات...
             </div>
 
             <div class="section-title">
                 <span>الطلبات والتنبيهات الحالية</span>
             </div>
 
-            <div class="requests-list">
-                
-                <div class="request-item emergency">
-                    <div class="request-text">
-                        <h5>طلب مساعدة عاجلة</h5>
-                        <span>منذ 2 دقيقة</span>
-                    </div>
-                    <div class="action-btns">
-                        <button class="btn-accept" onclick="acceptRequest('طلب المساعدة')">قبول</button>
-                        <button class="btn-decline" onclick="ignoreRequest(this)">تجاهل</button>
-                    </div>
-                </div>
-
-                <div class="request-item medication">
-                    <div class="request-text">
-                        <h5>تذكير بموعد دواء السكر</h5>
-                        <span>الساعة 2:00 ظهراً</span>
-                    </div>
-                    <div class="action-btns">
-                        <button class="btn-accept" onclick="acceptRequest('متابعة الدواء')">تأكيد الأخذ</button>
-                    </div>
-                </div>
-
+            <div class="requests-list" id="requestsList">
                 <div class="request-item">
                     <div class="request-text">
-                        <h5>طلب مكالمة مرئية</h5>
-                        <span>منذ 15 دقيقة</span>
-                    </div>
-                    <div class="action-btns">
-                        <button class="btn-accept" onclick="acceptRequest('المكالمة والمرئية')">بدء</button>
-                        <button class="btn-decline" onclick="ignoreRequest(this)">إلغاء</button>
+                        <h5>جارٍ تحميل الطلبات...</h5>
+                        <span>يرجى الانتظار</span>
                     </div>
                 </div>
-
             </div>
-
         </div>
     </div>
 
     <div id="alertModal" class="custom-alert-overlay hidden">
         <div class="alert-modal">
-            <div id="modalIcon" style="font-size: 45px; margin-bottom: 10px;">🔔</div>
+            <div id="modalIcon" style="font-size:45px;margin-bottom:10px;">🔔</div>
             <h2 id="modalTitle">تنبيه</h2>
             <p id="modalMessage">تفاصيل الطلب هنا</p>
-            <button class="btn-close-modal" onclick="closeModal()">موافق</button>
+            <button type="button" class="btn-close-modal" onclick="closeModal()">موافق</button>
         </div>
     </div>
 
     <script>
+        let caregiverRequests = [];
+
         function showModal(title, message, icon = '🔔') {
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalMessage').textContent = message;
@@ -411,38 +431,331 @@
             document.getElementById('alertModal').classList.add('hidden');
         }
 
-        function respondEmergency() {
-            showModal('🚨 جاري الاستجابة للطوارئ', 'تم تأكيد استجابتك البلاغ! جاري فتح قنوات الاتصال والموقع المباشر مع المستفيد...', '📞');
-            document.getElementById('emergencyBanner').style.display = 'none';
+        function setMessage(message) {
+            document.getElementById('caregiverMessage').textContent = message;
         }
 
-        function acceptRequest(type) {
-            showModal('✅ تم قبول الطلب', 'تم قبول ' + type + ' بنجاح وجاري المتابعة مع المستفيد.', '👍');
+        function makeElement(tag, className, text) {
+            const element = document.createElement(tag);
+
+            if (className) {
+                element.className = className;
+            }
+
+            if (text !== undefined && text !== null) {
+                element.textContent = String(text);
+            }
+
+            return element;
         }
 
-        function ignoreRequest(btnElement) {
-            const item = btnElement.closest('.request-item');
-            item.style.opacity = '0.5';
-            item.style.pointerEvents = 'none';
+        async function apiRequest(path, options = {}) {
+            const token = localStorage.getItem('sanad_token');
+
+            if (!token) {
+                throw new Error('NO_TOKEN');
+            }
+
+            const headers = {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json',
+                ...(options.headers || {})
+            };
+
+            const response = await fetch(path, {
+                ...options,
+                headers
+            });
+
+            let data = {};
+
+            try {
+                data = await response.json();
+            } catch (error) {
+                data = {};
+            }
+
+            if (response.status === 401) {
+                throw new Error('UNAUTHORIZED');
+            }
+
+            if (response.status === 403) {
+                throw new Error('FORBIDDEN');
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message ||
+                    data.error ||
+                    'تعذر تنفيذ الطلب. رمز الخطأ: ' + response.status
+                );
+            }
+
+            return data;
+        }
+
+        function friendlyError(error) {
+            if (error.message === 'NO_TOKEN') {
+                return 'يرجى تسجيل الدخول أولًا بحساب مقدم الرعاية.';
+            }
+
+            if (error.message === 'UNAUTHORIZED') {
+                return 'انتهت صلاحية تسجيل الدخول. سجّل الدخول مجددًا.';
+            }
+
+            if (error.message === 'FORBIDDEN') {
+                return 'ليس لديك صلاحية الوصول إلى طلبات مقدمي الرعاية.';
+            }
+
+            if (error instanceof TypeError) {
+                return 'تعذر الاتصال بالخادم. تحقق من تشغيل الخادم واتصال الإنترنت.';
+            }
+
+            return error.message || 'حدث خطأ أثناء تحميل البيانات.';
+        }
+
+        function extractRequests(data) {
+            if (Array.isArray(data)) return data;
+            if (Array.isArray(data.requests)) return data.requests;
+            if (Array.isArray(data.data)) return data.data;
+            return null;
+        }
+
+        function requestStatus(request) {
+            return String(
+                request.status ||
+                request.request_status ||
+                'PENDING'
+            ).toUpperCase();
+        }
+
+        function requestTitle(request) {
+            return request.request_type ||
+                request.title ||
+                request.description ||
+                'طلب مساعدة';
+        }
+
+        function requestDescription(request) {
+            return request.description ||
+                request.details ||
+                'لا توجد تفاصيل إضافية';
+        }
+
+        function requestId(request) {
+            return request.request_id ??
+                request.id ??
+                null;
+        }
+
+        function isUrgent(request) {
+            const priority = String(
+                request.priority_level ||
+                request.urgency_level ||
+                request.priority ||
+                ''
+            ).toUpperCase();
+
+            return ['HIGH', 'CRITICAL', 'EMERGENCY', 'URGENT'].includes(priority);
+        }
+
+        function renderPatients(requests) {
+            const container = document.getElementById('patientList');
+            const names = new Map();
+
+            requests.forEach(function(request) {
+                const name = request.elderly_name ||
+                    request.patient_name ||
+                    request.full_name;
+
+                if (name) {
+                    names.set(String(name), request);
+                }
+            });
+
+            container.replaceChildren();
+
+            document.getElementById('patientCount').textContent =
+                String(names.size);
+
+            if (names.size === 0) {
+                const card = makeElement('div', 'patient-card');
+                const avatar = makeElement('div', 'patient-avatar', '👴');
+                const details = makeElement('div', 'patient-details');
+
+                details.appendChild(makeElement('h4', '', 'لا توجد بيانات مستفيدين'));
+                details.appendChild(makeElement('p', '', 'ستظهر بيانات المستفيد عند توفرها من الخادم'));
+
+                card.append(avatar, details);
+                container.appendChild(card);
+                return;
+            }
+
+            names.forEach(function(request, name) {
+                const card = makeElement('div', 'patient-card');
+                const avatar = makeElement('div', 'patient-avatar', '👴');
+                const details = makeElement('div', 'patient-details');
+
+                details.appendChild(makeElement('h4', '', name));
+                details.appendChild(
+                    makeElement(
+                        'p',
+                        '',
+                        'حالة الطلب: ' + requestStatus(request)
+                    )
+                );
+
+                card.append(avatar, details);
+                container.appendChild(card);
+            });
+        }
+
+        function renderRequests(requests) {
+            const list = document.getElementById('requestsList');
+            list.replaceChildren();
+
+            const pending = requests.filter(function(request) {
+                return ['PENDING', 'ACCEPTED', 'IN_PROGRESS'].includes(requestStatus(request));
+            });
+
+            document.getElementById('todayRequests').textContent =
+                String(requests.length);
+
+            document.getElementById('completedRequests').textContent =
+                String(requests.filter(function(request) {
+                    return requestStatus(request) === 'COMPLETED';
+                }).length);
+
+            const urgentRequest = pending.find(isUrgent);
+            const banner = document.getElementById('emergencyBanner');
+
+            if (urgentRequest) {
+                banner.classList.remove('hidden');
+                document.getElementById('emergencyText').textContent =
+                    requestTitle(urgentRequest);
+
+                document.getElementById('emergencyButton').onclick = function() {
+                    showRequestDetails(urgentRequest);
+                };
+            } else {
+                banner.classList.add('hidden');
+            }
+
+            if (pending.length === 0) {
+                const item = makeElement('div', 'request-item');
+                const text = makeElement('div', 'request-text');
+
+                text.appendChild(makeElement('h5', '', 'لا توجد طلبات معلقة'));
+                text.appendChild(makeElement('span', '', 'لا توجد طلبات تحتاج إلى إجراء حاليًا'));
+
+                item.appendChild(text);
+                list.appendChild(item);
+                return;
+            }
+
+            pending.forEach(function(request) {
+                const urgent = isUrgent(request);
+                const item = makeElement(
+                    'div',
+                    'request-item' + (urgent ? ' emergency' : '')
+                );
+
+                const text = makeElement('div', 'request-text');
+                text.appendChild(makeElement('h5', '', requestTitle(request)));
+                text.appendChild(
+                    makeElement(
+                        'span',
+                        '',
+                        'الحالة: ' + requestStatus(request)
+                    )
+                );
+
+                const actions = makeElement('div', 'action-btns');
+                const detailsButton = makeElement('button', 'btn-accept', 'التفاصيل');
+
+                detailsButton.type = 'button';
+                detailsButton.addEventListener('click', function() {
+                    showRequestDetails(request);
+                });
+
+                actions.appendChild(detailsButton);
+                item.append(text, actions);
+                list.appendChild(item);
+            });
+        }
+
+        function showRequestDetails(request) {
+            const description = requestDescription(request);
+            const status = requestStatus(request);
+            const id = requestId(request);
+
+            showModal(
+                'تفاصيل الطلب',
+                'رقم الطلب: ' + (id === null ? 'غير متوفر' : id) +
+                '\nالوصف: ' + description +
+                '\nالحالة: ' + status +
+                '\n\nقبول الطلب أو تحديث حالته يحتاج إلى مسار تحديث معتمد في الخادم.',
+                isUrgent(request) ? '🚨' : '🔔'
+            );
         }
 
         async function fetchCaregiverData() {
+            const connection = document.getElementById('connectionStatus');
+
+            if (!localStorage.getItem('sanad_token')) {
+                connection.textContent = 'غير مسجل';
+                setMessage('يرجى تسجيل الدخول قبل عرض طلبات المستفيدين.');
+                document.getElementById('requestsList').replaceChildren();
+
+                const item = makeElement('div', 'request-item');
+                const text = makeElement('div', 'request-text');
+                text.appendChild(makeElement('h5', '', 'يلزم تسجيل الدخول'));
+                text.appendChild(makeElement('span', '', 'لا يمكن تحميل الطلبات دون رمز دخول'));
+                item.appendChild(text);
+                document.getElementById('requestsList').appendChild(item);
+                return;
+            }
+
             try {
-                const token = localStorage.getItem('sanad_token');
-                const response = await fetch('/api/caregiver/requests', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
-                });
-                if(response.ok) {
-                    const data = await response.json();
+                connection.textContent = 'جارٍ الاتصال...';
+
+                const data = await apiRequest('/api/requests');
+                const requests = extractRequests(data);
+
+                if (!requests) {
+                    throw new Error('استجابة الخادم لا تحتوي على قائمة طلبات معروفة.');
                 }
+
+                caregiverRequests = requests;
+                renderPatients(requests);
+                renderRequests(requests);
+
+                connection.textContent = 'متصل بالخادم';
+                setMessage('تم تحميل البيانات من الخادم. قد تختلف الطلبات المعروضة حسب صلاحيات الحساب.');
+
             } catch (error) {
-                console.error('Caregiver data error:', error);
+                connection.textContent = 'تعذر الاتصال';
+                setMessage(friendlyError(error));
+
+                document.getElementById('requestsList').replaceChildren();
+
+                const item = makeElement('div', 'request-item');
+                const text = makeElement('div', 'request-text');
+                text.appendChild(makeElement('h5', '', 'تعذر تحميل الطلبات'));
+                text.appendChild(makeElement('span', '', friendlyError(error)));
+                item.appendChild(text);
+
+                document.getElementById('requestsList').appendChild(item);
+                document.getElementById('patientList').replaceChildren();
+
+                document.getElementById('todayRequests').textContent = '—';
+                document.getElementById('completedRequests').textContent = '—';
+                document.getElementById('patientCount').textContent = '—';
+                document.getElementById('emergencyBanner').classList.add('hidden');
             }
         }
 
-        fetchCaregiverData();
+        document.addEventListener('DOMContentLoaded', fetchCaregiverData);
     </script>
 </body>
 </html>
