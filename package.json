@@ -5,7 +5,8 @@
   "description": "Smart Elderly Assistance and Management System",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "check": "node --check server.js && node --check controllers/authController.js && node --check controllers/requestController.js && node --check middleware/authMiddleware.js && node --check config/db.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
