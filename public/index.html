@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل الدخول - سند (SANAD)</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <style>
         * {
             box-sizing: border-box;
@@ -12,7 +13,7 @@
             padding: 0;
             font-family: 'Cairo', sans-serif;
         }
-        
+
         body {
             background-color: #1a252f;
             background-image: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
@@ -202,6 +203,11 @@
             transform: scale(0.98);
         }
 
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
         .footer-links {
             margin-top: 20px;
             text-align: center;
@@ -225,7 +231,7 @@
 
     <div class="phone-container">
         <div class="screen-content">
-            
+
             <div class="header-section">
                 <div class="logo-icon">🤝</div>
                 <div class="logo-section">
@@ -234,7 +240,7 @@
                 </div>
             </div>
 
-            <div id="alertBox" class="custom-alert hidden">
+            <div id="alertBox" class="custom-alert hidden" role="status" aria-live="polite">
                 <span>⚠️</span>
                 <span id="alertText">الرجاء إدخال البيانات المطلوبة</span>
             </div>
@@ -242,14 +248,26 @@
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <div class="input-box">
-                        <input type="text" id="identifier" placeholder="البريد الإلكتروني أو رقم الهاتف">
+                        <input
+                            type="text"
+                            id="identifier"
+                            placeholder="البريد الإلكتروني أو رقم الهاتف"
+                            autocomplete="username"
+                            required
+                        >
                         <span>📧</span>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <div class="input-box">
-                        <input type="password" id="password" placeholder="كلمة المرور">
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="كلمة المرور"
+                            autocomplete="current-password"
+                            required
+                        >
                         <span>🔒</span>
                     </div>
                 </div>
@@ -259,14 +277,17 @@
                 </button>
 
                 <button type="button" class="btn-help" onclick="showHelpModal()">
-                    <span>❓</span> أتاج مساعدة في الدخول؟
+                    <span>❓</span> أحتاج مساعدة في الدخول
                 </button>
 
-                <button type="submit" class="btn-primary">تسجيل الدخول</button>
+                <button type="submit" id="loginButton" class="btn-primary">
+                    تسجيل الدخول
+                </button>
             </form>
 
             <div class="footer-links">
-                ليس لديك حساب؟ <a href="register.html">أنشئ حساباً جديداً</a>
+                ليس لديك حساب؟
+                <a href="register.html">أنشئ حساباً جديداً</a>
             </div>
 
         </div>
@@ -276,8 +297,9 @@
         function showAlert(message, isError = true) {
             const alertBox = document.getElementById('alertBox');
             const alertText = document.getElementById('alertText');
+
             alertText.textContent = message;
-            
+
             if (!isError) {
                 alertBox.style.backgroundColor = '#e8f8f5';
                 alertBox.style.color = '#27ae60';
@@ -289,21 +311,22 @@
             }
 
             alertBox.classList.remove('hidden');
-            setTimeout(() => {
-                alertBox.classList.add('hidden');
-            }, 4000);
         }
 
         async function handleLogin(event) {
             event.preventDefault();
-            
+
             const identifier = document.getElementById('identifier').value.trim();
-            const password = document.getElementById('password').value.trim();
+            const password = document.getElementById('password').value;
+            const loginButton = document.getElementById('loginButton');
 
             if (!identifier || !password) {
-                showAlert('الرجاء إدخال البريد أو الهاتف وكلمة المرور');
+                showAlert('الرجاء إدخال البريد الإلكتروني أو الهاتف وكلمة المرور');
                 return;
             }
+
+            loginButton.disabled = true;
+            loginButton.textContent = 'جارٍ التحقق...';
 
             try {
                 showAlert('جاري الاتصال بالخادم والتحقق من الحساب...', false);
@@ -314,63 +337,57 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        identifier,
-                        password
+                        identifier: identifier,
+                        password: password
                     })
                 });
 
-                const data = await response.json();
+                let data;
 
-                if (response.ok && data.status === 'SUCCESS') {
+                try {
+                    data = await response.json();
+                } catch {
+                    data = {};
+                }
+
+                if (response.ok && data.status === 'SUCCESS' && data.token) {
+                    localStorage.setItem('sanad_token', data.token);
+
                     showAlert('تم تسجيل الدخول بنجاح! جاري تحويلك...', false);
-                    if (data.token) {
-                        localStorage.setItem('sanad_token', data.token);
-                    }
+
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';
-                    }, 1500);
+                    }, 1000);
                 } else {
-                    showAlert(data.message || 'خطأ في بيانات الدخول أو كلمة المرور');
+                    localStorage.removeItem('sanad_token');
+
+                    showAlert(
+                        data.message || 'تعذر تسجيل الدخول أو لم يُرجع الخادم رمز الجلسة.'
+                    );
+
+                    loginButton.disabled = false;
+                    loginButton.textContent = 'تسجيل الدخول';
                 }
             } catch (error) {
                 console.error('Login Error:', error);
-                showAlert('حدث خطأ في الاتصال بالخادم الرئيسي');
+
+                showAlert('حدث خطأ في الاتصال بالخادم. تحقق من تشغيل المشروع.');
+
+                loginButton.disabled = false;
+                loginButton.textContent = 'تسجيل الدخول';
             }
         }
 
         async function authenticateWithBiometrics() {
-            if (!window.PublicKeyCredential) {
-                showAlert('متصفحك لا يدعم المصادقة الحيوية بالبصمة');
-                return;
-            }
-
-            try {
-                showAlert('يرجى تأكيد بصمة الإصبع في هاتفك...', false);
-
-                const publicKeyCredentialRequestOptions = {
-                    challenge: Uint8Array.from("sanad_secure_challenge_string", c => c.charCodeAt(0)),
-                    timeout: 60000,
-                    userVerification: "required"
-                };
-
-                const credential = await navigator.credentials.get({
-                    publicKey: publicKeyCredentialRequestOptions
-                });
-
-                if (credential) {
-                    showAlert('تم التحقق من البصمة بنجاح!', false);
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1500);
-                }
-            } catch (error) {
-                console.error('Biometric Error:', error);
-                showAlert('فشل التحقق من البصمة أو تم إلغاء العملية');
-            }
+            showAlert(
+                'تسجيل الدخول بالبصمة غير مهيأ للتحقق الآمن من الخادم حالياً. استخدم تسجيل الدخول العادي.'
+            );
         }
 
         function showHelpModal() {
-            showAlert('تم إرسال طلب المساعدة الفنية، سيتم الاتصال بك قريباً');
+            showAlert(
+                'للمساعدة في الدخول، يرجى التواصل مع المسؤول عن النظام.'
+            );
         }
     </script>
 </body>
