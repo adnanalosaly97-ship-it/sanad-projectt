@@ -1,3 +1,4 @@
+
 'use strict';
 
 const express = require('express');
@@ -9,7 +10,6 @@ const requestController = require('./controllers/requestController');
 const authMiddleware = require('./middleware/authMiddleware');
 
 const app = express();
-
 const PORT = Number(process.env.PORT || 3000);
 
 if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
@@ -51,6 +51,18 @@ app.get(
 );
 
 app.post(
+    '/api/admin/users',
+    authMiddleware,
+    authController.adminCreateUser
+);
+
+app.patch(
+    '/api/admin/users/:id',
+    authMiddleware,
+    authController.adminUpdateUser
+);
+
+app.post(
     '/api/requests',
     authMiddleware,
     requestController.createRequest
@@ -68,7 +80,7 @@ app.post(
     (req, res) => {
         return res.status(501).json({
             status: 'ERROR',
-            message: 'Emergency alert service is not implemented yet'
+            message: 'Emergency alert service is not implemented yet.'
         });
     }
 );
@@ -79,7 +91,7 @@ app.get(
     (req, res) => {
         return res.status(501).json({
             status: 'ERROR',
-            message: 'Caregiver request retrieval is not implemented yet'
+            message: 'Caregiver request retrieval is not implemented yet.'
         });
     }
 );
@@ -90,7 +102,7 @@ app.get(
     (req, res) => {
         return res.status(501).json({
             status: 'ERROR',
-            message: 'Admin statistics are not implemented yet'
+            message: 'Admin statistics are not implemented yet.'
         });
     }
 );
@@ -98,7 +110,7 @@ app.get(
 app.use((req, res) => {
     return res.status(404).json({
         status: 'ERROR',
-        message: 'The requested route was not found'
+        message: 'The requested route was not found.'
     });
 });
 
@@ -123,17 +135,18 @@ app.use((err, req, res, next) => {
 
     console.error('Request error:', err.message);
 
-    const statusCode = Number.isInteger(err.status) &&
+    const statusCode =
+        Number.isInteger(err.status) &&
         err.status >= 400 &&
         err.status <= 599
-        ? err.status
-        : 500;
+            ? err.status
+            : 500;
 
     return res.status(statusCode).json({
         status: 'ERROR',
         message: statusCode >= 500
-            ? 'An internal server error occurred'
-            : 'Invalid request'
+            ? 'An internal server error occurred.'
+            : 'Invalid request.'
     });
 });
 
