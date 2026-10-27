@@ -1,3 +1,4 @@
+
 'use strict';
 
 const mysql = require('mysql2/promise');
@@ -9,7 +10,7 @@ const requiredVariables = [
 ];
 
 const missingVariables = requiredVariables.filter(
-    (name) => !process.env[name]
+    name => process.env[name] === undefined
 );
 
 if (missingVariables.length > 0) {
