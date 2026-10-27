@@ -38,7 +38,7 @@
         .screen-header {
             background: #2980b9;
             color: white;
-            padding: 20px 20px 15px 20px;
+            padding: 20px 20px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -295,7 +295,6 @@
     </style>
 </head>
 <body>
-
     <div class="phone-container">
         <div class="screen-header">
             <div class="header-title">
@@ -397,27 +396,87 @@
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error('HTTP ' + response.status);
+                let data = {};
+
+                try {
+                    data = await response.json();
+                } catch {}
+
+                if (!response.ok || data.status !== 'SUCCESS') {
+                    throw new Error(data.message || 'HTTP ' + response.status);
                 }
 
-                showModal('تم إرسال البلاغ', 'استقبل الخادم طلب الطوارئ بنجاح.', '✅');
+                showModal(
+                    'تم إرسال البلاغ',
+                    'استقبل الخادم طلب الطوارئ بنجاح.',
+                    '✅'
+                );
             } catch (error) {
                 console.error('Emergency trigger error:', error);
+
                 showModal(
                     'تعذر تأكيد الإرسال',
-                    'ظهرت الواجهة، لكن لم نتمكن من تأكيد إرسال البلاغ إلى الخادم. تحقق من تشغيل الخادم ووجود المسار المطلوب.',
+                    'لم نتمكن من تأكيد إرسال البلاغ إلى الخادم. قد يكون المسار غير منفذ بعد.',
                     '⚠️'
                 );
             }
         }
 
-        function requestCare() {
-            showModal(
-                'طلب رعاية',
-                'هذه الواجهة جاهزة لعرض طلب الرعاية. لا يُعد الطلب مسجلاً في قاعدة البيانات إلا بعد ربط الزر بمسار API يعمل.',
-                '👨‍⚕️'
-            );
+        async function requestCare() {
+            const token = localStorage.getItem('sanad_token');
+
+            if (!token) {
+                showModal(
+                    'يلزم تسجيل الدخول',
+                    'لم يتم العثور على جلسة الدخول. سجّل الدخول من صفحة المشروع نفسها ثم حاول مجدداً.',
+                    '⚠️'
+                );
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/requests', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        request_type: 'CARE',
+                        description: 'طلب رعاية من لوحة كبار السن',
+                        priority_level: 'MEDIUM'
+                    })
+                });
+
+                let data = {};
+
+                try {
+                    data = await response.json();
+                } catch {}
+
+                if (!response.ok || data.status !== 'SUCCESS') {
+                    showModal(
+                        'تعذر إرسال الطلب',
+                        data.message || 'لم يتم حفظ طلب الرعاية. تحقق من تسجيل الدخول والخادم.',
+                        '⚠️'
+                    );
+                    return;
+                }
+
+                showModal(
+                    'تم إرسال طلب الرعاية',
+                    'تم حفظ طلبك بنجاح. رقم الطلب: ' + data.requestId,
+                    '✅'
+                );
+            } catch (error) {
+                console.error('Care request error:', error);
+
+                showModal(
+                    'تعذر الاتصال',
+                    'لم نتمكن من الاتصال بالخادم. تحقق من تشغيل المشروع ثم حاول مجدداً.',
+                    '⚠️'
+                );
+            }
         }
 
         function callFamily() {
@@ -457,6 +516,7 @@
 
             recognition.onresult = function(event) {
                 const transcript = event.results[0][0].transcript;
+
                 document.getElementById('voiceStatus').textContent =
                     'سمعت: "' + transcript + '"';
 
@@ -489,6 +549,7 @@
             recognition.onerror = function() {
                 document.getElementById('voiceStatus').textContent =
                     'لم أتمكن من السماع بوضوح، حاول مرة أخرى';
+
                 document.getElementById('micBtn').classList.remove('listening');
                 isListening = false;
             };
