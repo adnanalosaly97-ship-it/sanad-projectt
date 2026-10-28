@@ -1,4 +1,3 @@
-
 'use strict';
 
 const express = require('express');
@@ -46,7 +45,7 @@ app.patch('/api/admin/users/:id', authMiddleware, authController.adminUpdateUser
 app.post('/api/requests', authMiddleware, requestController.createRequest);
 app.get('/api/requests', authMiddleware, requestController.getAllRequests);
 
-app.post('/api/alerts/emergency', authMiddleware, async (req, res, next) => {
+app.post('/api/alerts/emergency', authMiddleware, async (req, res) => {
     try {
         const userId = req.user && (req.user.user_id || req.user.id);
 
@@ -64,69 +63,83 @@ app.post('/api/alerts/emergency', authMiddleware, async (req, res, next) => {
                AND TABLE_NAME = 'assistance_requests'`
         );
 
-        const names = new Set(columns.map(c => c.COLUMN_NAME));
+        const names = new Set(columns.map(column => column.COLUMN_NAME));
 
-        if (!names.has('elderly_id') || !names.has('request_type')) {
+        const requiredColumns = [
+            'request_id',
+            'elderly_id',
+            'request_type',
+            'priority_level',
+            'status'
+        ];
+
+        const missingColumns = requiredColumns.filter(
+            column => !names.has(column)
+        );
+
+        if (missingColumns.length > 0) {
             return res.status(500).json({
                 status: 'ERROR',
-                message: 'بنية جدول طلبات المساعدة لا تطابق المطلوب.'
+                message: 'أعمدة جدول طلبات المساعدة لا تطابق بنية قاعدة البيانات.'
             });
         }
 
-        const typeColumn = names.has('priority_level')
-            ? 'priority_level'
-            : names.has('priority')
-                ? 'priority'
-                : null;
+        const insertColumns = [
+            'elderly_id',
+            'request_type',
+            'priority_level',
+            'status'
+        ];
 
-        const statusColumn = names.has('status')
-            ? 'status'
-            : names.has('request_status')
-                ? 'request_status'
-                : null;
+        const values = [
+            userId,
+            'EMERGENCY',
+            'CRITICAL',
+            'PENDING'
+        ];
 
-        const descriptionColumn = names.has('description')
-            ? 'description'
-            : null;
-
-        const insertColumns = ['elderly_id', 'request_type'];
-        const placeholders = ['?', '?'];
-        const values = [userId, 'EMERGENCY'];
-
-        if (descriptionColumn) {
-            insertColumns.push(descriptionColumn);
-            placeholders.push('?');
+        if (names.has('description')) {
+            insertColumns.push('description');
             values.push('بلاغ طوارئ من لوحة كبار السن');
         }
 
-        if (typeColumn) {
-            insertColumns.push(typeColumn);
-            placeholders.push('?');
-            values.push('CRITICAL');
-        }
+        const placeholders = insertColumns.map(() => '?').join(', ');
 
-        if (statusColumn) {
-            insertColumns.push(statusColumn);
-            placeholders.push('?');
-            values.push('PENDING');
-        }
-
-        const sql = `INSERT INTO assistance_requests
-            (${insertColumns.map(c => `\`${c}\``).join(', ')})
-            VALUES (${placeholders.join(', ')})`;
+        const sql = `
+            INSERT INTO assistance_requests
+            (${insertColumns.map(column => `\`${column}\``).join(', ')})
+            VALUES (${placeholders})
+        `;
 
         const [result] = await db.execute(sql, values);
 
+        if (!result.insertId) {
+            return res.status(500).json({
+                status: 'ERROR',
+                message: 'تم تنفيذ الطلب دون إرجاع رقم الطلب.'
+            });
+        }
+
         return res.status(201).json({
             status: 'SUCCESS',
-            requestId: result.insertId
+            message: 'تم تسجيل بلاغ الطوارئ بنجاح.',
+            requestId: result.insertId,
+            request_id: result.insertId
         });
     } catch (error) {
-        next(error);
+        console.error(
+            'Emergency request failed:',
+            error.code || error.message
+        );
+
+        return res.status(500).json({
+            status: 'ERROR',
+            message: 'تعذر تسجيل بلاغ الطوارئ. تحقق من اتصال قاعدة البيانات.'
+        });
     }
 });
 
-app.get('/api/reminders', authMiddleware, async (req, res, next) => {
+app.get('/api/reminders', authMiddleware, async (req, res) => {
     try {
         const userId = req.user && (req.user.user_id || req.user.id);
 
@@ -137,81 +150,48 @@ app.get('/api/reminders', authMiddleware, async (req, res, next) => {
             });
         }
 
-        const [columns] = await db.execute(
-            `SELECT COLUMN_NAME
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = 'reminders'`
+        const [rows] = await db.execute(
+            `SELECT
+                reminder_id,
+                user_id,
+                title,
+                reminder_details,
+                reminder_at,
+                status
+             FROM reminders
+             WHERE user_id = ?
+             ORDER BY reminder_at ASC
+             LIMIT 50`,
+            [userId]
         );
 
-        const names = new Set(columns.map(c => c.COLUMN_NAME));
-
-        if (names.size === 0) {
-            return res.status(501).json({
-                status: 'ERROR',
-                message: 'جدول التذكيرات غير موجود في قاعدة البيانات.'
-            });
-        }
-
-        const userColumn = ['user_id', 'elderly_id'].find(c => names.has(c));
-
-        if (!userColumn) {
-            return res.status(500).json({
-                status: 'ERROR',
-                message: 'جدول التذكيرات لا يحتوي على عمود يربط التذكير بالمستخدم.'
-            });
-        }
-
-        const idColumn = ['reminder_id', 'id'].find(c => names.has(c));
-        const nameColumn = [
-            'medicine_name',
-            'medication_name',
-            'title',
-            'name',
-            'reminder_title'
-        ].find(c => names.has(c));
-
-        const timeColumn = [
-            'reminder_time',
-            'scheduled_at',
-            'reminder_date',
-            'medication_time',
-            'time'
-        ].find(c => names.has(c));
-
-        const selected = [
-            idColumn,
-            nameColumn,
-            timeColumn
-        ].filter(Boolean);
-
-        if (selected.length === 0) {
-            return res.status(500).json({
-                status: 'ERROR',
-                message: 'لم يتم العثور على أعمدة بيانات التذكيرات.'
-            });
-        }
-
-        const sql = `SELECT ${selected.map(c => `\`${c}\``).join(', ')}
-                     FROM reminders
-                     WHERE \`${userColumn}\` = ?
-                     ${idColumn ? `ORDER BY \`${idColumn}\` DESC` : ''}
-                     LIMIT 50`;
-
-        const [rows] = await db.execute(sql, [userId]);
-
         const reminders = rows.map(row => ({
-            id: idColumn ? row[idColumn] : null,
-            medicine_name: nameColumn ? row[nameColumn] : 'تذكير',
-            reminder_time: timeColumn ? row[timeColumn] : 'غير محدد'
+            id: row.reminder_id,
+            reminder_id: row.reminder_id,
+            title: row.title,
+            medicine_name: row.title,
+            reminder_details: row.reminder_details,
+            reminder_time: row.reminder_at,
+            reminder_at: row.reminder_at,
+            status: row.status
         }));
 
         return res.status(200).json({
             status: 'SUCCESS',
-            reminders
+            count: reminders.length,
+            reminders,
+            data: reminders
         });
     } catch (error) {
-        next(error);
+        console.error(
+            'Reminder retrieval failed:',
+            error.code || error.message
+        );
+
+        return res.status(500).json({
+            status: 'ERROR',
+            message: 'تعذر جلب التذكيرات. تحقق من اتصال قاعدة البيانات.'
+        });
     }
 });
 
@@ -237,7 +217,9 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
-    if (res.headersSent) return next(err);
+    if (res.headersSent) {
+        return next(err);
+    }
 
     if (err.type === 'entity.parse.failed') {
         return res.status(400).json({
@@ -253,7 +235,10 @@ app.use((err, req, res, next) => {
         });
     }
 
-    console.error('Request error:', err.message);
+    console.error(
+        'Request error:',
+        err.code || err.message
+    );
 
     return res.status(500).json({
         status: 'ERROR',
