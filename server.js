@@ -56,6 +56,13 @@ app.post('/api/alerts/emergency', authMiddleware, async (req, res) => {
             });
         }
 
+        if (req.user.user_role !== 'ELDERLY') {
+            return res.status(403).json({
+                status: 'ERROR',
+                message: 'يمكن لكبار السن فقط إرسال بلاغ الطوارئ.'
+            });
+        }
+
         const [columns] = await db.execute(
             `SELECT COLUMN_NAME
              FROM INFORMATION_SCHEMA.COLUMNS
@@ -73,14 +80,10 @@ app.post('/api/alerts/emergency', authMiddleware, async (req, res) => {
             'status'
         ];
 
-        const missingColumns = requiredColumns.filter(
-            column => !names.has(column)
-        );
-
-        if (missingColumns.length > 0) {
+        if (requiredColumns.some(column => !names.has(column))) {
             return res.status(500).json({
                 status: 'ERROR',
-                message: 'أعمدة جدول طلبات المساعدة لا تطابق بنية قاعدة البيانات.'
+                message: 'بنية جدول طلبات المساعدة لا تطابق المطلوب.'
             });
         }
 
@@ -116,7 +119,7 @@ app.post('/api/alerts/emergency', authMiddleware, async (req, res) => {
         if (!result.insertId) {
             return res.status(500).json({
                 status: 'ERROR',
-                message: 'تم تنفيذ الطلب دون إرجاع رقم الطلب.'
+                message: 'تعذر الحصول على رقم الطلب بعد تسجيله.'
             });
         }
 
@@ -134,7 +137,7 @@ app.post('/api/alerts/emergency', authMiddleware, async (req, res) => {
 
         return res.status(500).json({
             status: 'ERROR',
-            message: 'تعذر تسجيل بلاغ الطوارئ. تحقق من اتصال قاعدة البيانات.'
+            message: 'تعذر تسجيل بلاغ الطوارئ.'
         });
     }
 });
@@ -190,23 +193,122 @@ app.get('/api/reminders', authMiddleware, async (req, res) => {
 
         return res.status(500).json({
             status: 'ERROR',
-            message: 'تعذر جلب التذكيرات. تحقق من اتصال قاعدة البيانات.'
+            message: 'تعذر جلب التذكيرات.'
         });
     }
 });
 
-app.get('/api/caregiver/requests', authMiddleware, (req, res) => {
-    return res.status(501).json({
-        status: 'ERROR',
-        message: 'استرجاع طلبات المساعد لم يتم تنفيذه بعد.'
-    });
+app.get('/api/caregiver/requests', authMiddleware, async (req, res) => {
+    try {
+        if (!req.user || req.user.user_role !== 'HELPER') {
+            return res.status(403).json({
+                status: 'ERROR',
+                message: 'غير مصرح لك بعرض طلبات المساعدة.'
+            });
+        }
+
+        const helperId = req.user.user_id || req.user.id;
+
+        if (!helperId) {
+            return res.status(401).json({
+                status: 'ERROR',
+                message: 'تعذر تحديد حساب المساعد.'
+            });
+        }
+
+        const [rows] = await db.execute(
+            `SELECT
+                r.request_id,
+                r.elderly_id,
+                u.full_name AS elderly_name,
+                r.request_type,
+                r.description,
+                r.priority_level,
+                r.status,
+                r.created_at
+             FROM assistance_requests AS r
+             INNER JOIN users AS u
+                ON r.elderly_id = u.user_id
+             WHERE r.helper_id = ?
+             ORDER BY r.created_at DESC`,
+            [helperId]
+        );
+
+        return res.status(200).json({
+            status: 'SUCCESS',
+            count: rows.length,
+            data: rows
+        });
+    } catch (error) {
+        console.error(
+            'Caregiver requests failed:',
+            error.code || error.message
+        );
+
+        return res.status(500).json({
+            status: 'ERROR',
+            message: 'تعذر جلب طلبات المساعدة.'
+        });
+    }
 });
 
-app.get('/api/admin/stats', authMiddleware, (req, res) => {
-    return res.status(501).json({
-        status: 'ERROR',
-        message: 'إحصائيات الإدارة لم يتم تنفيذها بعد.'
-    });
+app.get('/api/admin/stats', authMiddleware, async (req, res) => {
+    try {
+        if (!req.user || req.user.user_role !== 'ADMIN') {
+            return res.status(403).json({
+                status: 'ERROR',
+                message: 'غير مصرح لك بعرض إحصائيات الإدارة.'
+            });
+        }
+
+        const [userStats] = await db.execute(
+            `SELECT
+                COUNT(*) AS total_users,
+                SUM(CASE WHEN user_role = 'ELDERLY' THEN 1 ELSE 0 END) AS elderly_users,
+                SUM(CASE WHEN user_role = 'HELPER' THEN 1 ELSE 0 END) AS helper_users,
+                SUM(CASE WHEN user_role = 'ADMIN' THEN 1 ELSE 0 END) AS admin_users,
+                SUM(CASE WHEN account_status = 'ACTIVE' THEN 1 ELSE 0 END) AS active_users
+             FROM users`
+        );
+
+        const [requestStats] = await db.execute(
+            `SELECT
+                COUNT(*) AS total_requests,
+                SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END) AS pending_requests,
+                SUM(CASE WHEN status = 'ACCEPTED' THEN 1 ELSE 0 END) AS accepted_requests,
+                SUM(CASE WHEN status = 'IN_PROGRESS' THEN 1 ELSE 0 END) AS in_progress_requests,
+                SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) AS completed_requests,
+                SUM(CASE WHEN status = 'REJECTED' THEN 1 ELSE 0 END) AS rejected_requests,
+                SUM(CASE WHEN status = 'CANCELLED' THEN 1 ELSE 0 END) AS cancelled_requests
+             FROM assistance_requests`
+        );
+
+        const [reminderStats] = await db.execute(
+            `SELECT
+                COUNT(*) AS total_reminders,
+                SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END) AS pending_reminders,
+                SUM(CASE WHEN status = 'SENT' THEN 1 ELSE 0 END) AS sent_reminders,
+                SUM(CASE WHEN status = 'CANCELLED' THEN 1 ELSE 0 END) AS cancelled_reminders
+             FROM reminders`
+        );
+
+        return res.status(200).json({
+            status: 'SUCCESS',
+            users: userStats[0],
+            requests: requestStats[0],
+            reminders: reminderStats[0]
+        });
+    } catch (error) {
+        console.error(
+            'Admin statistics failed:',
+            error.code || error.message
+        );
+
+        return res.status(500).json({
+            status: 'ERROR',
+            message: 'تعذر جلب إحصائيات الإدارة.'
+        });
+    }
 });
 
 app.use((req, res) => {
