@@ -1,4 +1,3 @@
-
 'use strict';
 
 const mysql = require('mysql2/promise');
@@ -10,7 +9,7 @@ const requiredVariables = [
 ];
 
 const missingVariables = requiredVariables.filter(
-    name => process.env[name] === undefined
+    name => !process.env[name]
 );
 
 if (missingVariables.length > 0) {
@@ -43,5 +42,17 @@ const pool = mysql.createPool({
         minVersion: 'TLSv1.2'
     }
 });
+
+pool.getConnection()
+    .then(connection => {
+        console.log('SANAD database connection successful.');
+        connection.release();
+    })
+    .catch(error => {
+        console.error(
+            'SANAD database connection failed:',
+            error.code || error.message
+        );
+    });
 
 module.exports = pool;
